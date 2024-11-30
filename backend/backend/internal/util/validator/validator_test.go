@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"e-commerce-pet/backend/backend/internal/model"
+	"e-commerce/backend/internal/model"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
