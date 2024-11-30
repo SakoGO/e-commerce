@@ -6,6 +6,7 @@ import (
 	"e-commerce/backend/internal/transport"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -28,13 +29,12 @@ func main() {
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		if err := srv.Run(); err != nil {
+		if err := srv.Run(); err != nil && http.ErrServerClosed == nil {
 			fmt.Printf("Server failed: %v\n", err)
 		}
 	}()
 
 	<-stop
-	fmt.Println("Gracefully shutting down...")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
