@@ -6,97 +6,114 @@ import (
 	"testing"
 )
 
-// User validation tests
+// User validation tests using switch-case structure
 func TestUserValidation(t *testing.T) {
 	validator := NewGoValidator()
 
-	// test: valid data
-	validUser := model.User{
-		Username: "Ruslan",
-		Email:    "Ruslan@gmail.com",
-		Password: "Ruslanches",
-		Phone:    "89183219212",
+	// Test cases with different types of validation issues
+	tests := []struct {
+		name     string
+		user     model.User
+		expected string
+	}{
+		{
+			name: "Valid user",
+			user: model.User{
+				Username: "Ruslan",
+				Email:    "Ruslan@gmail.com",
+				Password: "Ruslanches",
+				Phone:    "89183219212",
+			},
+			expected: "", // No error expected
+		},
+		{
+			name: "Invalid email",
+			user: model.User{
+				Username: "Ruslan",
+				Email:    "Ruslangmail.com", // Invalid email format
+				Password: "Ruslanches",
+				Phone:    "89183219212",
+			},
+			expected: "email: Ruslangmail.com does not validate as email",
+		},
+		{
+			name: "Invalid password (too short)",
+			user: model.User{
+				Username: "Ruslan",
+				Email:    "Ruslang@mail.com",
+				Password: "Rusik", // Invalid password: less than 6 characters
+				Phone:    "89183219212",
+			},
+			expected: "password: Rusik does not validate as length(6|20)",
+		},
+		{
+			name: "Invalid phone (contains symbols)",
+			user: model.User{
+				Username: "Ruslan",
+				Email:    "Ruslan@gmail.com",
+				Password: "Ruslanches",
+				Phone:    "89183s219212", // Invalid phone number with symbols
+			},
+			expected: "phone: 89183s219212 does not validate as numeric",
+		},
+		{
+			name: "Invalid phone (too short)",
+			user: model.User{
+				Username: "Ruslan",
+				Email:    "Ruslan@gmail.com",
+				Password: "Ruslanches",
+				Phone:    "8918321921", // Invalid phone number: too short
+			},
+			expected: "phone: 8918321921 does not validate as matches(^[0-9]{11}$)",
+		},
+		{
+			name: "Empty email",
+			user: model.User{
+				Username: "Ruslan",
+				Email:    "", // Empty email
+				Password: "Ruslanches",
+				Phone:    "89183219212",
+			},
+			expected: "email: non zero value required",
+		},
+		{
+			name: "Empty password",
+			user: model.User{
+				Username: "Ruslan",
+				Email:    "Ruslan@gmail.com",
+				Password: "", // Empty password
+				Phone:    "89183219212",
+			},
+			expected: "password: non zero value required",
+		},
+		{
+			name: "Empty phone",
+			user: model.User{
+				Username: "Ruslan",
+				Email:    "Ruslan@gmail.com",
+				Password: "Ruslanches",
+				Phone:    "", // Empty phone
+			},
+			expected: "phone: non zero value required",
+		},
 	}
 
-	err := validator.ValidateStruct(validUser)
-	assert.Nil(t, err, "Expected no error for valid user")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validator.ValidateStruct(tt.user)
 
-	// test: invalid email
-	invalidEmail := model.User{
-		Username: "Ruslan",
-		Email:    "Ruslangmail.com", // Invalid email format
-		Password: "Ruslanches",
-		Phone:    "89183219212",
+			// Use switch-case for handling different validation cases
+			switch {
+			case tt.expected == "":
+				// If no error is expected, assert nil error
+				assert.Nil(t, err, "Expected no error for valid user")
+			default:
+				// If an error is expected, assert the error message contains the expected string
+				assert.NotNil(t, err, "Expected error but got nil")
+				assert.Contains(t, err.Error(), tt.expected, "Unexpected error message")
+			}
+		})
 	}
-
-	err = validator.ValidateStruct(invalidEmail)
-	assert.NotNil(t, err, "Expected error for invalid email")
-
-	// test: invalid password
-	invalidPassword := model.User{
-		Username: "Ruslan",
-		Email:    "Ruslang@mail.com",
-		Password: "Rusik", // Invalid password: less than 6 characters
-		Phone:    "89183219212",
-	}
-
-	err = validator.ValidateStruct(invalidPassword)
-	assert.NotNil(t, err, "Expected error for invalid password")
-
-	// test: invalid phone symbols
-	invalidPhoneSymbol := model.User{
-		Username: "Ruslan",
-		Email:    "Ruslan@gmail.com",
-		Password: "Ruslanches",
-		Phone:    "89183s219212", // Invalid phone number with symbols
-	}
-
-	err = validator.ValidateStruct(invalidPhoneSymbol)
-	assert.NotNil(t, err, "Expected error for invalid phone (contains symbols)")
-
-	// test: invalid phone
-	invalidPhone := model.User{
-		Username: "Ruslan",
-		Email:    "Ruslan@gmail.com",
-		Password: "Ruslanches",
-		Phone:    "8918321921", // Invalid phone number: too short
-	}
-
-	err = validator.ValidateStruct(invalidPhone)
-	assert.NotNil(t, err, "Expected error for invalid phone (incorrect number length)")
-
-	// test: empty email
-	emptyEmail := model.User{
-		Username: "Ruslan",
-		Email:    "", // Empty email
-		Password: "Ruslanches",
-		Phone:    "89183219212",
-	}
-
-	err = validator.ValidateStruct(emptyEmail)
-	assert.NotNil(t, err, "Expected error for empty email")
-
-	// test: empty password
-	emptyPass := model.User{
-		Username: "Ruslan",
-		Email:    "Ruslan@gmail.com",
-		Password: "", // Empty password
-		Phone:    "89183219212",
-	}
-
-	err = validator.ValidateStruct(emptyPass)
-	assert.NotNil(t, err, "Expected error for empty password")
-
-	// test: empty phone
-	emptyPhone := model.User{
-		Username: "Ruslan",
-		Email:    "Ruslan@gmail.com",
-		Password: "Ruslanches",
-		Phone:    "", // Empty phone
-	}
-
-	err = validator.ValidateStruct(emptyPhone)
-	assert.NotNil(t, err, "Expected error for empty phone")
 }
 
 /*
