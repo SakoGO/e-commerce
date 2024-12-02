@@ -13,11 +13,22 @@ type Config struct {
 		WriteTimeout int    `json:"WriteTimeout"`
 		IdleTimeout  int    `json:"ShutdownTimeout"`
 	} `json:"server"`
+
+	Database struct {
+		User      string `json:"user"`
+		Password  string `json:"password"`
+		Host      string `json:"host"`
+		Port      int    `json:"port"`
+		Name      string `json:"name"`
+		Charset   string `json:"charset"`
+		ParseTime bool   `json:"parse_time"`
+		Loc       string `json:"loc"`
+	} `json:"database"`
 }
 
 func LoadConfig(filePath string) (*Config, error) {
 
-	// Open file
+	// Open config file
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open config file: %v", err)

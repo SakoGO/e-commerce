@@ -2,10 +2,12 @@ package service
 
 import (
 	"e-commerce/backend/internal/model"
+	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"os"
 	"time"
 )
@@ -14,19 +16,35 @@ type UserRepository interface {
 	UserSignUP(user *model.User) error
 	UserFindByUsername(username string) (*model.User, error)
 	UserFindByEmail(email string) (*model.User, error)
-	//	UserFindByID(userID int) (*model.User, error)
-	//	UserDelete(userID int) error
+	UserFindByPhone(phone string) (*model.User, error)
+	// UserFindByID(userID int) (*model.User, error) //
+	//	UserDelete(userID int) error //
 }
 
 type UserService struct {
 	repo UserRepository
 }
 
-func NewUserService(repo UserRepository) *UserService {
-	return &UserService{repo: repo}
+func (s *UserService) UserFindByUsername(username string) (*model.User, error) {
+	return s.repo.UserFindByUsername(username)
 }
 
-func (s *UserService) SignUP(username, email, password string) error {
+func (s *UserService) UserFindByEmail(email string) (*model.User, error) {
+	return s.repo.UserFindByEmail(email)
+}
+
+func (s *UserService) UserFindByPhone(phone string) (*model.User, error) {
+	return s.repo.UserFindByPhone(phone)
+}
+
+func NewUserService(repo UserRepository) *UserService {
+	return &UserService{
+		repo: repo,
+	}
+}
+
+func (s *UserService) SignUP(username, email, password, phone string) error {
+
 	existingUser, err := s.repo.UserFindByUsername(username)
 	if err == nil && existingUser != nil {
 		return fmt.Errorf("username %s is already taken", username)
@@ -35,6 +53,11 @@ func (s *UserService) SignUP(username, email, password string) error {
 	existingEmail, err := s.repo.UserFindByEmail(email)
 	if err == nil && existingEmail != nil {
 		return fmt.Errorf("email %s is already taken", email)
+	}
+
+	existingPhone, err := s.repo.UserFindByPhone(phone)
+	if err == nil && existingPhone != nil {
+		return fmt.Errorf("phone %s is already taken", phone)
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -47,6 +70,7 @@ func (s *UserService) SignUP(username, email, password string) error {
 		Username: username,
 		Email:    email,
 		Password: string(hashedPassword),
+		Phone:    phone,
 	}
 	if err := s.repo.UserSignUP(user); err != nil {
 		return fmt.Errorf("failed to sign up")
@@ -56,13 +80,16 @@ func (s *UserService) SignUP(username, email, password string) error {
 
 func (s *UserService) SignIN(email, password string) (string, error) {
 	user, err := s.repo.UserFindByEmail(email)
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return "", fmt.Errorf("failed to find account %s: %v", email, err)
+	}
+	if user == nil {
 		return "", fmt.Errorf("account %s is not found", email)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", fmt.Errorf("incorrect passwrod")
+		return "", fmt.Errorf("incorrect password")
 	}
 
 	token, err := s.GenerateJWTToken(user.UserID)
