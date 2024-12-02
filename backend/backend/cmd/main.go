@@ -3,9 +3,15 @@ package main
 import (
 	"context"
 	"e-commerce/backend/config"
+	"e-commerce/backend/internal/repository"
+	"e-commerce/backend/internal/service"
 	"e-commerce/backend/internal/transport"
+	"e-commerce/backend/internal/transport/handlers"
+	"e-commerce/backend/internal/util/validator"
+	"e-commerce/backend/pkg/db"
 	"fmt"
-	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,7 +19,22 @@ import (
 	"time"
 )
 
+func LoadEnv() {
+	err := godotenv.Load("D:/e-commerce/backend/.env")
+	if err != nil {
+		log.Fatal().Err(err).Msg("Error loading .env")
+	}
+}
+
 func main() {
+
+	LoadEnv()
+
+	keyJWT := os.Getenv("JWT_SECRET_KEY")
+	fmt.Println("JWT Key:", keyJWT)
+	if keyJWT == "" {
+		log.Fatal().Msg("JWT secret key is not configured")
+	}
 
 	cfg, err := config.LoadConfig("config.json")
 	if err != nil {
@@ -21,7 +42,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	r := chi.NewRouter()
+	db, err := db.NewGormDB(cfg)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to connect database")
+	}
+
+	userRepo, err := repository.NewUserRepository(db)
+	if err != nil {
+		log.Error().Err(err).Msg("error creating user repository")
+	}
+
+	userServ := service.NewUserService(userRepo)
+
+	valid := validator.NewGoValidator()
+
+	h := handlers.NewHandler(userServ, keyJWT, valid)
+	r := h.InitRoutes()
 
 	srv := transport.NewServer(cfg, r)
 
@@ -30,6 +66,7 @@ func main() {
 
 	go func() {
 		if err := srv.Run(); err != nil && http.ErrServerClosed == nil {
+			log.Error().Err(err).Msg("Server failed to start")
 			fmt.Printf("Server failed: %v\n", err)
 		}
 	}()

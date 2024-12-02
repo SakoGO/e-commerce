@@ -4,5 +4,15 @@
     "readTimeout": 5,
     "writeTimeout": 5,
     "idleTimeout": 5
+  },
+  "database": {
+    "User": "root",
+    "Password": "12345",
+    "Host": "127.0.0.1",
+    "Port": 3306,
+    "name": "ECOM",
+    "charset": "utf8",
+    "parse_time": true,
+    "loc": "Local"
   }
 }
