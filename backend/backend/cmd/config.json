@@ -10,9 +10,9 @@
     "Password": "12345",
     "Host": "127.0.0.1",
     "Port": 3306,
-    "Name": "ECOM",
-    "Charset": "utf8mb4",
-    "ParseTime": true,
-    "Loc": "Local"
+    "name": "ECOM",
+    "charset": "utf8",
+    "parse_time": true,
+    "loc": "Local"
   }
 }

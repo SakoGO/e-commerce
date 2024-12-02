@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"e-commerce/backend/internal/model"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -54,7 +53,7 @@ func JWTMiddleware(keyJWT string, next http.HandlerFunc) *http.HandlerFunc {
 		}
 
 		ctx := context.WithValue(r.Context(), "userID", int(userID))
-		
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 

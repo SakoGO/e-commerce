@@ -31,7 +31,7 @@ func main() {
 	LoadEnv()
 
 	keyJWT := os.Getenv("JWT_SECRET_KEY")
-	// fmt.Println("JWT Key:", keyJWT)
+	fmt.Println("JWT Key:", keyJWT)
 	if keyJWT == "" {
 		log.Fatal().Msg("JWT secret key is not configured")
 	}
