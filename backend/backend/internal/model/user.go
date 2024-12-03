@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type User struct {
 	UserID    int       `json:"id" gorm:"primary_key"`
@@ -12,4 +14,5 @@ type User struct {
 	Role      string    `json:"role" gorm:"varchar(255);default:customer"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	DeletedAt time.Time `json:"deleted_at"`
 }

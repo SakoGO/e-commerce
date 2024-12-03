@@ -7,6 +7,7 @@ import (
 )
 
 type Handler struct {
+	AuthService   AuthService
 	UserService   UserService
 	keyJWT        string
 	validator     Validator
@@ -18,9 +19,10 @@ type JWTMiddleware interface {
 	JWTMiddlewareAdmin() func(http.Handler) http.Handler
 }
 
-func NewHandler(UserService UserService, keyJWT string, validator Validator, jwtMiddleware JWTMiddleware) *Handler {
+func NewHandler(UserService UserService, keyJWT string, validator Validator, jwtMiddleware JWTMiddleware, AuthService AuthService) *Handler {
 	return &Handler{
 		UserService:   UserService,
+		AuthService:   AuthService,
 		keyJWT:        keyJWT,
 		validator:     validator,
 		jwtMiddleware: jwtMiddleware,
@@ -38,7 +40,7 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	//For admins
 
-	r.With(h.jwtMiddleware.JWTMiddlewareAdmin()).Get("/user/{username}", h.UserFindByUsername)
-	r.With(h.jwtMiddleware.JWTMiddlewareAdmin()).Get("/user/{email}", h.UserFindByEmail)
+	// r.With(h.jwtMiddleware.JWTMiddlewareAdmin()).Get("/user/{username}", h.UserFindByUsername)
+	// r.With(h.jwtMiddleware.JWTMiddlewareAdmin()).Get("/user/{email}", h.UserFindByEmail)
 	return r
 }

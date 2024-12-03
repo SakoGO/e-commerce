@@ -9,50 +9,38 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockUserRepository struct {
+type MockAuthRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserRepository) UserSignUP(user *model.User) error {
+func (m *MockAuthRepository) SignUP(user *model.User) error {
 	return m.Called(user).Error(0)
 }
-
-func (m *MockUserRepository) UserFindByUsername(username string) (*model.User, error) {
+func (m *MockAuthRepository) SignIN(user *model.User) error {
+	return m.Called(user).Error(0)
+}
+func (m *MockAuthRepository) FindByUsername(username string) (*model.User, error) {
 	if user := m.Called(username).Get(0); user != nil {
 		return user.(*model.User), m.Called(username).Error(1)
 	}
 	return nil, m.Called(username).Error(1)
 }
 
-func (m *MockUserRepository) UserFindByEmail(email string) (*model.User, error) {
+func (m *MockAuthRepository) FindByEmail(email string) (*model.User, error) {
 	if user := m.Called(email).Get(0); user != nil {
 		return user.(*model.User), m.Called(email).Error(1)
 	}
 	return nil, m.Called(email).Error(1)
 }
 
-func (m *MockUserRepository) UserFindByPhone(phone string) (*model.User, error) {
+func (m *MockAuthRepository) FindByPhone(phone string) (*model.User, error) {
 	if user := m.Called(phone).Get(0); user != nil {
 		return user.(*model.User), m.Called(phone).Error(1)
 	}
 	return nil, m.Called(phone).Error(1)
 }
 
-func (m *MockUserRepository) UserFindByID(userID int) (*model.User, error) {
-	if user := m.Called(userID).Get(0); user != nil {
-		return user.(*model.User), m.Called(userID).Error(1)
-	}
-	return nil, m.Called(userID).Error(1)
-}
-
-func (m *MockUserRepository) UserDelete(userID int) error {
-	if user := m.Called(userID).Get(0); user != nil {
-		return m.Called(userID).Error(0)
-	}
-	return m.Called(userID).Error(0)
-}
-
-func TestUserService_SignUP(t *testing.T) {
+func TestAuthService_SignUP(t *testing.T) {
 	tests := []struct {
 		name          string
 		username      string
@@ -113,31 +101,31 @@ func TestUserService_SignUP(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			mockRepo := new(MockUserRepository)
+			mockRepo := new(MockAuthRepository)
 
 			if tt.usernameTaken {
-				mockRepo.On("UserFindByUsername", tt.username).Return(&model.User{}, nil)
+				mockRepo.On("FindByUsername", tt.username).Return(&model.User{}, nil)
 			} else {
-				mockRepo.On("UserFindByUsername", tt.username).Return(nil, nil)
+				mockRepo.On("FindByUsername", tt.username).Return(nil, nil)
 			}
 
 			if tt.emailTaken {
-				mockRepo.On("UserFindByEmail", tt.email).Return(&model.User{}, nil)
+				mockRepo.On("FindByEmail", tt.email).Return(&model.User{}, nil)
 			} else {
-				mockRepo.On("UserFindByEmail", tt.email).Return(nil, nil)
+				mockRepo.On("FindByEmail", tt.email).Return(nil, nil)
 			}
 
 			if tt.phoneTaken {
-				mockRepo.On("UserFindByPhone", tt.phone).Return(&model.User{}, nil)
+				mockRepo.On("FindByPhone", tt.phone).Return(&model.User{}, nil)
 			} else {
-				mockRepo.On("UserFindByPhone", tt.phone).Return(nil, nil)
+				mockRepo.On("FindByPhone", tt.phone).Return(nil, nil)
 			}
 
-			mockRepo.On("UserSignUP", mock.Anything).Return(nil)
+			mockRepo.On("SignUP", mock.Anything).Return(nil)
 
-			userService := NewUserService(mockRepo)
+			authService := NewAuthService(mockRepo)
 
-			err := userService.SignUP(tt.username, tt.email, tt.password, tt.phone)
+			err := authService.SignUP(tt.username, tt.email, tt.password, tt.phone)
 
 			if tt.expectedError != "" {
 				assert.EqualError(t, err, tt.expectedError)
@@ -148,7 +136,7 @@ func TestUserService_SignUP(t *testing.T) {
 	}
 }
 
-func TestUserService_SignIN(t *testing.T) {
+func TestAuthService_SignIN(t *testing.T) {
 
 	os.Setenv("JWT_SECRET_KEY", "test_secret_key")
 	defer os.Unsetenv("JWT_SECRET_KEY")
@@ -189,7 +177,7 @@ func TestUserService_SignIN(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRepo := new(MockUserRepository)
+			mockRepo := new(MockAuthRepository)
 
 			user := &model.User{
 				Email:    tt.email,
@@ -197,13 +185,13 @@ func TestUserService_SignIN(t *testing.T) {
 			}
 
 			if tt.emailNotFound {
-				mockRepo.On("UserFindByEmail", tt.email).Return(nil, nil)
+				mockRepo.On("FindByEmail", tt.email).Return(nil, nil)
 			} else {
-				mockRepo.On("UserFindByEmail", tt.email).Return(user, nil)
+				mockRepo.On("FindByEmail", tt.email).Return(user, nil)
 			}
 
-			userService := NewUserService(mockRepo)
-			token, err := userService.SignIN(tt.email, tt.password)
+			authService := NewAuthService(mockRepo)
+			token, err := authService.SignIN(tt.email, tt.password)
 
 			if tt.expectedError != "" {
 				assert.EqualError(t, err, tt.expectedError)

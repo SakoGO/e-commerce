@@ -17,37 +17,6 @@ func NewUserRepository(db *gorm.DB) (*UserRepository, error) {
 	return &UserRepository{db: db}, nil
 }
 
-func (r *UserRepository) UserSignUP(user *model.User) error {
-	return r.db.Create(user).Error
-}
-
-func (r *UserRepository) UserFindByUsername(username string) (*model.User, error) {
-	var user model.User
-	err := r.db.Where("username = ?", username).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (r *UserRepository) UserFindByEmail(email string) (*model.User, error) {
-	var user model.User
-	err := r.db.Where("email = ?", email).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (r *UserRepository) UserFindByPhone(phone string) (*model.User, error) {
-	var user model.User
-	err := r.db.Where("phone = ?", phone).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
 func (r *UserRepository) UserFindByID(userID int) (*model.User, error) {
 	var user model.User
 	err := r.db.First(&user, userID).Error
@@ -57,6 +26,7 @@ func (r *UserRepository) UserFindByID(userID int) (*model.User, error) {
 	return &user, nil
 }
 
+/*
 func (r *UserRepository) UserDelete(userID int) error {
 	var user model.User
 	err := r.db.First(&user, userID).Error
@@ -69,4 +39,18 @@ func (r *UserRepository) UserDelete(userID int) error {
 		return err
 	}
 	return nil
+}*/
+
+func (r *UserRepository) UserUpdate(user *model.User) error {
+	var update model.User
+	err := r.db.First(&update, user.UserID).Error
+	if err != nil {
+		return err
+	}
+	return r.db.Model(&update).Updates(model.User{
+		Username: user.Username,
+		Email:    user.Email,
+		Password: user.Password,
+		Phone:    user.Phone,
+	}).Error
 }

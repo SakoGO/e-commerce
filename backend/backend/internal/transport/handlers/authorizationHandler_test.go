@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-type MockUserService struct {
+type MockAuthService struct {
 	mock.Mock
 }
 
@@ -21,44 +21,47 @@ type MockValidator struct {
 	mock.Mock
 }
 
-func (m *MockUserService) SignUP(username, email, password, phone string) error {
+func (m *MockAuthService) SignUP(username, email, password, phone string) error {
 	args := m.Called(username, email, password, phone)
 	return args.Error(0)
 }
 
-func (m *MockUserService) SignIN(email, password string) (string, error) {
+func (m *MockAuthService) SignIN(email, password string) (string, error) {
 	args := m.Called(email, password)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockUserService) UserFindByUsername(username string) (*model.User, error) {
+func (m *MockAuthService) FindByUsername(username string) (*model.User, error) {
 	args := m.Called(username)
 	return args.Get(0).(*model.User), args.Error(1)
 }
 
-func (m *MockUserService) UserFindByEmail(email string) (*model.User, error) {
+func (m *MockAuthService) FindByEmail(email string) (*model.User, error) {
 	args := m.Called(email)
 	return args.Get(0).(*model.User), args.Error(1)
 }
 
+/*
 // TODO: Tests for //UserFindByID
-func (m *MockUserService) UserFindByID(userID int) (*model.User, error) {
-	args := m.Called(userID)
-	return args.Get(0).(*model.User), args.Error(1)
-}
+
+	func (m *MockAuthService) UserFindByID(userID int) (*model.User, error) {
+		args := m.Called(userID)
+		return args.Get(0).(*model.User), args.Error(1)
+	}
 
 // TODO: Tests for //UserDelete
-func (m *MockUserService) UserDelete(userID int) error {
-	args := m.Called(userID)
-	return args.Error(0)
-}
 
+	func (m *MockAuthService) UserDelete(userID int) error {
+		args := m.Called(userID)
+		return args.Error(0)
+	}
+*/
 func (m *MockValidator) ValidateStruct(i interface{}) error {
 	args := m.Called(i)
 	return args.Error(0)
 }
 
-func TestUserHandlerSignUP(t *testing.T) {
+func TestAuthHandlerSignUP(t *testing.T) {
 	tests := []struct {
 		name             string
 		body             model.User
@@ -109,14 +112,14 @@ func TestUserHandlerSignUP(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserService := new(MockUserService)
+			mockAuthService := new(MockAuthService)
 			mockValidator := new(MockValidator)
 
 			mockValidator.On("ValidateStruct", &tt.body).Return(tt.validatorError)
-			mockUserService.On("SignUP", tt.body.Username, tt.body.Email, tt.body.Password, tt.body.Phone).Return(tt.signUpError)
+			mockAuthService.On("SignUP", tt.body.Username, tt.body.Email, tt.body.Password, tt.body.Phone).Return(tt.signUpError)
 
 			handler := &Handler{
-				UserService: mockUserService,
+				AuthService: mockAuthService,
 				validator:   mockValidator,
 			}
 
@@ -132,7 +135,7 @@ func TestUserHandlerSignUP(t *testing.T) {
 	}
 }
 
-func TestUserHandlerSignIN(t *testing.T) {
+func TestAuthHandlerSignIN(t *testing.T) {
 	tests := []struct {
 		name             string
 		body             model.User
@@ -159,7 +162,7 @@ func TestUserHandlerSignIN(t *testing.T) {
 				Password: "wrong_qwerty12345",
 			},
 			signInError:      assert.AnError,
-			expectedCode:     http.StatusUnauthorized,
+			expectedCode:     http.StatusBadRequest,
 			expectedResponse: "incorrect data format",
 			expectedToken:    "",
 		},
@@ -167,12 +170,12 @@ func TestUserHandlerSignIN(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserService := new(MockUserService)
+			mockUserService := new(MockAuthService)
 
 			mockUserService.On("SignIN", tt.body.Email, tt.body.Password).Return(tt.expectedToken, tt.signInError)
 
 			handler := &Handler{
-				UserService: mockUserService,
+				AuthService: mockUserService,
 			}
 
 			body, _ := json.Marshal(tt.body)
