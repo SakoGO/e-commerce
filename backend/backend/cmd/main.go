@@ -7,6 +7,7 @@ import (
 	"e-commerce/backend/internal/service"
 	"e-commerce/backend/internal/transport"
 	"e-commerce/backend/internal/transport/handlers"
+	"e-commerce/backend/internal/transport/middlewarejwt"
 	"e-commerce/backend/internal/util/validator"
 	"e-commerce/backend/pkg/db"
 	"fmt"
@@ -47,16 +48,22 @@ func main() {
 		log.Error().Err(err).Msg("failed to connect database")
 	}
 
+	authRepo, err := repository.NewAuthRepository(db)
+
 	userRepo, err := repository.NewUserRepository(db)
 	if err != nil {
 		log.Error().Err(err).Msg("error creating user repository")
 	}
 
+	authServ := service.NewAuthService(authRepo)
+
 	userServ := service.NewUserService(userRepo)
 
 	valid := validator.NewGoValidator()
 
-	h := handlers.NewHandler(userServ, keyJWT, valid)
+	jwtMiddleware := middlewarejwt.NewJWTMiddleware(keyJWT) //
+
+	h := handlers.NewHandler(userServ, keyJWT, valid, jwtMiddleware, authServ) //jwtmiddleware
 	r := h.InitRoutes()
 
 	srv := transport.NewServer(cfg, r)
