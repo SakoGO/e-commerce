@@ -38,6 +38,20 @@ func (m *MockUserRepository) UserFindByPhone(phone string) (*model.User, error) 
 	return nil, m.Called(phone).Error(1)
 }
 
+func (m *MockUserRepository) UserFindByID(userID int) (*model.User, error) {
+	if user := m.Called(userID).Get(0); user != nil {
+		return user.(*model.User), m.Called(userID).Error(1)
+	}
+	return nil, m.Called(userID).Error(1)
+}
+
+func (m *MockUserRepository) UserDelete(userID int) error {
+	if user := m.Called(userID).Get(0); user != nil {
+		return m.Called(userID).Error(0)
+	}
+	return m.Called(userID).Error(0)
+}
+
 func TestUserService_SignUP(t *testing.T) {
 	tests := []struct {
 		name          string

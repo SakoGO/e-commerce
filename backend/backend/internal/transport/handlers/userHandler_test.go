@@ -41,6 +41,18 @@ func (m *MockUserService) UserFindByEmail(email string) (*model.User, error) {
 	return args.Get(0).(*model.User), args.Error(1)
 }
 
+// TODO: Tests for //UserFindByID
+func (m *MockUserService) UserFindByID(userID int) (*model.User, error) {
+	args := m.Called(userID)
+	return args.Get(0).(*model.User), args.Error(1)
+}
+
+// TODO: Tests for //UserDelete
+func (m *MockUserService) UserDelete(userID int) error {
+	args := m.Called(userID)
+	return args.Error(0)
+}
+
 func (m *MockValidator) ValidateStruct(i interface{}) error {
 	args := m.Called(i)
 	return args.Error(0)

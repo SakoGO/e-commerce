@@ -3,6 +3,7 @@ package handlers
 import (
 	"e-commerce/backend/internal/model"
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog/log"
 	"net/http"
 )
@@ -12,6 +13,8 @@ type UserService interface {
 	SignIN(email, password string) (string, error)
 	UserFindByUsername(username string) (*model.User, error)
 	UserFindByEmail(email string) (*model.User, error)
+	UserFindByID(userID int) (*model.User, error) //
+	UserDelete(userID int) error                  //
 }
 
 type Validator interface {
@@ -66,5 +69,31 @@ func (h *Handler) SignIN(w http.ResponseWriter, r *http.Request) {
 		"token": token})
 	if err != nil {
 		return
+	}
+}
+
+// ///////////////////////////////////////////////////////////////////////////////////////////////////
+func (h *Handler) UserFindByUsername(w http.ResponseWriter, r *http.Request) {
+	// Извлекаем username из URL-параметра
+	username := chi.URLParam(r, "username")
+	if username == "" {
+		http.Error(w, "Username is required", http.StatusBadRequest)
+		return
+	}
+
+	// Ищем пользователя по имени
+	user, err := h.UserService.UserFindByUsername(username)
+	if err != nil {
+		// Если ошибка поиска (например, пользователь не найден)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// Кодируем пользователя в JSON и отправляем в ответ
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
 }

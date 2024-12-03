@@ -17,12 +17,20 @@ type UserRepository interface {
 	UserFindByUsername(username string) (*model.User, error)
 	UserFindByEmail(email string) (*model.User, error)
 	UserFindByPhone(phone string) (*model.User, error)
-	// UserFindByID(userID int) (*model.User, error) //
-	//	UserDelete(userID int) error //
+	UserFindByID(userID int) (*model.User, error) //
+	UserDelete(userID int) error                  //
 }
 
 type UserService struct {
 	repo UserRepository
+}
+
+func (s *UserService) UserFindByID(userID int) (*model.User, error) {
+	return s.repo.UserFindByID(userID)
+}
+
+func (s *UserService) UserDelete(userID int) error {
+	return s.repo.UserDelete(userID)
 }
 
 func (s *UserService) UserFindByUsername(username string) (*model.User, error) {
@@ -92,7 +100,7 @@ func (s *UserService) SignIN(email, password string) (string, error) {
 		return "", fmt.Errorf("incorrect password")
 	}
 
-	token, err := s.GenerateJWTToken(user.UserID)
+	token, err := s.GenerateJWTToken(user.UserID, user.Role)
 	if err != nil {
 		log.Error().Err(err).Str("userID", fmt.Sprintf("%d", user.UserID)).Msg("Error generating token")
 		return "", err
@@ -100,12 +108,13 @@ func (s *UserService) SignIN(email, password string) (string, error) {
 	return token, nil
 }
 
-func (s *UserService) GenerateJWTToken(userID int) (string, error) {
+func (s *UserService) GenerateJWTToken(userID int, role string) (string, error) {
 	keyJWT := s.GetJWTKey()
 
 	claims := jwt.MapClaims{
-		"sub": userID,
-		"exp": time.Now().Add(time.Hour * 17).Unix(),
+		"role": role,
+		"sub":  userID,
+		"exp":  time.Now().Add(time.Hour * 17).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

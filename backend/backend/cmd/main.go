@@ -7,6 +7,7 @@ import (
 	"e-commerce/backend/internal/service"
 	"e-commerce/backend/internal/transport"
 	"e-commerce/backend/internal/transport/handlers"
+	"e-commerce/backend/internal/transport/middlewarejwt"
 	"e-commerce/backend/internal/util/validator"
 	"e-commerce/backend/pkg/db"
 	"fmt"
@@ -56,7 +57,9 @@ func main() {
 
 	valid := validator.NewGoValidator()
 
-	h := handlers.NewHandler(userServ, keyJWT, valid)
+	jwtMiddleware := middlewarejwt.NewJWTMiddleware(keyJWT) //
+
+	h := handlers.NewHandler(userServ, keyJWT, valid, jwtMiddleware) //jwtmiddleware
 	r := h.InitRoutes()
 
 	srv := transport.NewServer(cfg, r)
