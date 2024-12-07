@@ -282,3 +282,163 @@ Git Flow
    - Постоянно обновляй систему, исправляй баги и добавляй новые фичи на основе фидбека.
 
 Этот план поможет тебе поэтапно строить и развивать маркетплейс цифровых товаров. Каждое действие логически связано с предыдущими шагами, и когда ты будешь идти по этому пути, можешь уточнять и адаптировать его под потребности твоего проекта.
+
+
+
+
+
+
+
+
+
+/my-ecommerce-project
+│
+├── /cmd
+│   └── /api
+│       └── main.go                 # Точка входа в приложение (API-сервер)
+│
+├── /configs
+│   └── config.go                   # Конфигурации (например, настройки БД, API и т.д.)
+│
+├── /internal
+│   ├── /handlers
+│   │   ├── auth_handler.go         # Обработчик авторизации (вход/регистрация)
+│   │   ├── cart_handler.go         # Обработчик корзины
+│   │   ├── order_handler.go        # Обработчик заказов
+│   │   ├── product_handler.go      # Обработчик продуктов
+│   │   ├── user_handler.go         # Обработчик пользователей
+│   │   ├── admin_handler.go        # Обработчик для администраторов
+│   │   └── payment_handler.go      # Обработчик оплаты
+│   │
+│   ├── /repositories
+│   │   ├── auth_repository.go      # Репозиторий для авторизации (пользователи, JWT)
+│   │   ├── cart_repository.go      # Репозиторий для корзины
+│   │   ├── order_repository.go     # Репозиторий для заказов
+│   │   ├── product_repository.go   # Репозиторий для продуктов
+│   │   ├── user_repository.go      # Репозиторий для пользователей
+│   │   └── payment_repository.go   # Репозиторий для оплат
+│   │
+│   ├── /services
+│   │   ├── auth_service.go         # Сервис авторизации
+│   │   ├── cart_service.go         # Сервис корзины
+│   │   ├── order_service.go        # Сервис заказов
+│   │   ├── product_service.go      # Сервис продуктов
+│   │   ├── user_service.go         # Сервис пользователей
+│   │   ├── admin_service.go        # Сервис для администраторов
+│   │   └── payment_service.go      # Сервис для оплаты
+│   │
+│   ├── /models
+│   │   ├── cart.go                 # Модель корзины
+│   │   ├── order.go                # Модель заказа
+│   │   ├── product.go              # Модель продукта
+│   │   ├── user.go                 # Модель пользователя
+│   │   ├── payment.go              # Модель оплаты
+│   │   ├── inventory.go            # Модель инвентаря (если нужно)
+│   │   └── role.go                 # Модель роли (для админов, пользователей)
+│   │
+│   ├── /validator
+│   │   └── validator.go            # Валидация данных (с использованием govalidator)
+│   │
+│   ├── /middleware
+│   │   ├── auth_middleware.go      # JWT аутентификация и авторизация
+│   │   └── logging_middleware.go   # Логирование запросов
+│   │
+│   └── /utils
+│       ├── errors.go               # Утилиты для обработки ошибок
+│       └── response.go             # Утилиты для формирования HTTP ответов
+│
+├── /pkg
+│   └── /utils
+│       ├── encryption.go           # Шифрование/расшифровка (например, для паролей)
+│       └── logger.go               # Утилиты для логирования
+│
+├── /scripts
+│   └── migrate.sh                  # Скрипты для миграции БД
+│
+├── /tests
+│   ├── /unit
+│   │   ├── auth_service_test.go    # Юнит-тесты для AuthService
+│   │   ├── cart_service_test.go    # Юнит-тесты для CartService
+│   │   ├── order_service_test.go   # Юнит-тесты для OrderService
+│   │   ├── product_service_test.go # Юнит-тесты для ProductService
+│   │   ├── user_service_test.go    # Юнит-тесты для UserService
+│   │   ├── admin_service_test.go   # Юнит-тесты для AdminService
+│   │   └── validator_test.go       # Тесты для валидации
+│   │
+│   └── /integration
+│       ├── auth_handler_test.go    # Интеграционные тесты для AuthHandler
+│       ├── cart_handler_test.go    # Интеграционные тесты для CartHandler
+│       ├── order_handler_test.go   # Интеграционные тесты для OrderHandler
+│       ├── product_handler_test.go # Интеграционные тесты для ProductHandler
+│       └── user_handler_test.go    # Интеграционные тесты для UserHandler
+│
+├── /migrations
+│   ├── 001_create_products_table.sql      # Скрипт миграции для создания таблицы продуктов
+│   ├── 002_create_orders_table.sql        # Скрипт миграции для создания таблицы заказов
+│   ├── 003_create_users_table.sql         # Скрипт миграции для создания таблицы пользователей
+│   └── 004_create_payment_table.sql       # Скрипт миграции для создания таблицы оплат
+│
+├── go.mod
+├── go.sum
+└── README.md
+
+///////////////////////// EDM //////////////////////////
+
++--------------------+           +-------------------+
+|       Users        |           |     Products      |
++--------------------+           +-------------------+
+| UserID (PK)        |           | ProductID (PK)    |
+| FirstName          |           | Name              |
+| LastName           |           | Description       |
+| Email              |           | Price             |
+| PhoneNumber        |           | QuantityInStock   |
+| PasswordHash       |           | CategoryID (FK)   |<----------------+
+| DateOfBirth        |           | ShopID (FK)       |                 |
+| UserRole           |           +-------------------+                 |
+| DateJoined         |                                                 |
+| Status             |                                                 |
++--------------------+                                                 |
+        |                                                              |
+        v                                                              v
++--------------------+                                         +------------------+
+|       Shop         |                                         |    Orders        |
++--------------------+                                         +------------------+
+| ShopID (PK)        |                                         | OrderID (PK)     |
+| ShopName           |                                         | UserID (FK)      |
+| UserID (FK)        |<----------------------------------------| OrderDate        |
+| ShopDescription    |                                         | TotalPrice       |
+| DateCreated        |                                         | ShippingAddressID|
++--------------------+                                         | Status           |
+        |                                                      | PaymentStatus    |
+        v                                                      | PaymentMethod    |
++--------------------+                                         | TrackingNumber   |
+|    OrderItems      |                                         +------------------+
++--------------------+                                                  |
+| OrderItemID (PK)   |                                                  v
+| OrderID (FK)       |                                         +------------------+
+| ProductID (FK)     |                                         | ProductReviews   |
+| Quantity           |                                         +------------------+
+| PriceAtPurchase    |                                         | ReviewID (PK)    |
++--------------------+                                         | ProductID (FK)   |
+        |                                                      | UserID (FK)      |
+        v                                                      | Rating           |
++--------------------+                                         | ReviewText       |
+|     Payments       |                                         | ReviewDate       |
++--------------------+                                         +------------------+
+| PaymentID (PK)     |
+| OrderID (FK)       |
+| PaymentDate        |
+| Amount             |
+| PaymentMethod      |
+| PaymentStatus      |
+| TransactionID      |
++--------------------+
+        |
+        v
++--------------------+
+|    Categories      |
++--------------------+
+| CategoryID (PK)    |
+| CategoryName       |
+| ParentCategoryID   |
+| (Optional, для создания иерархий категорий)

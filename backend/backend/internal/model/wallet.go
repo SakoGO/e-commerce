@@ -1,8 +1,12 @@
 package model
 
+import "time"
+
 type Wallet struct {
-	ID     int  `json:"id" gorm:"primary_key"`
-	UserID int  `json:"user_id"`
-	User   User `json:"-" gorm:"forignkey:UserID"`
-	Amount int  `json:"amount" gorm:"default:0"`
+	WalletID    int       `json:"id" gorm:"primary_key"`
+	UserID      int       `json:"user_id" gorm:"foreignKey:UserID"`
+	Balance     int       `json:"balance" gorm:"default:0"`
+	LastUpdated time.Time `json:"last_updated"`
+
+	User User `json:"user"`
 }

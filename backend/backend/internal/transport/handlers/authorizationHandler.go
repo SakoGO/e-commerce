@@ -25,7 +25,7 @@ func (h *Handler) SignUP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.validator.ValidateStruct(&user)
+	err := h.Validator.ValidateStruct(&user)
 	if err != nil {
 		log.Error().Err(err).Msg("Validation failed")
 		http.Error(w, "incorrect data for registration", http.StatusBadRequest)

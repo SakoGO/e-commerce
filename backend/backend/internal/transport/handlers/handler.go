@@ -10,7 +10,7 @@ type Handler struct {
 	AuthService   AuthService
 	UserService   UserService
 	keyJWT        string
-	validator     Validator
+	Validator     Validator
 	jwtMiddleware JWTMiddleware
 }
 
@@ -24,7 +24,7 @@ func NewHandler(UserService UserService, keyJWT string, validator Validator, jwt
 		UserService:   UserService,
 		AuthService:   AuthService,
 		keyJWT:        keyJWT,
-		validator:     validator,
+		Validator:     validator,
 		jwtMiddleware: jwtMiddleware,
 	}
 }

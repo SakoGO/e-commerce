@@ -1,7 +1,8 @@
-package service
+package tests
 
 import (
 	"e-commerce/backend/internal/model"
+	"e-commerce/backend/internal/service"
 	"os"
 	"testing"
 
@@ -123,7 +124,7 @@ func TestAuthService_SignUP(t *testing.T) {
 
 			mockRepo.On("SignUP", mock.Anything).Return(nil)
 
-			authService := NewAuthService(mockRepo)
+			authService := service.NewAuthService(mockRepo)
 
 			err := authService.SignUP(tt.username, tt.email, tt.password, tt.phone)
 
@@ -190,7 +191,7 @@ func TestAuthService_SignIN(t *testing.T) {
 				mockRepo.On("FindByEmail", tt.email).Return(user, nil)
 			}
 
-			authService := NewAuthService(mockRepo)
+			authService := service.NewAuthService(mockRepo)
 			token, err := authService.SignIN(tt.email, tt.password)
 
 			if tt.expectedError != "" {

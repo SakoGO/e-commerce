@@ -1,14 +1,15 @@
-package validator
+package tests
 
 import (
 	"e-commerce/backend/internal/model"
+	validator2 "e-commerce/backend/internal/util/validator"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 // User validation tests using switch-case structure
 func TestUserValidation(t *testing.T) {
-	validator := NewGoValidator()
+	validator := validator2.NewGoValidator()
 
 	// Test cases with different types of validation issues
 	tests := []struct {

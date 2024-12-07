@@ -5,23 +5,27 @@ import (
 	"gorm.io/gorm"
 )
 
-type AuthRepository struct {
+type authRepository struct {
 	db *gorm.DB
 }
 
-func NewAuthRepository(db *gorm.DB) (*AuthRepository, error) {
+func (r *authRepository) SignIN(user *model.User) error {
+	return r.db.Where(user).Error
+}
+
+func NewAuthRepository(db *gorm.DB) (*authRepository, error) {
 	err := db.AutoMigrate(&model.User{})
 	if err != nil {
 		return nil, err
 	}
-	return &AuthRepository{db: db}, nil
+	return &authRepository{db: db}, nil
 }
 
-func (r *AuthRepository) SignUP(user *model.User) error {
+func (r *authRepository) SignUP(user *model.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *AuthRepository) FindByUsername(username string) (*model.User, error) {
+func (r *authRepository) FindByUsername(username string) (*model.User, error) {
 	var user model.User
 	err := r.db.Where("username = ?", username).First(&user).Error
 	if err != nil {
@@ -30,7 +34,7 @@ func (r *AuthRepository) FindByUsername(username string) (*model.User, error) {
 	return &user, nil
 }
 
-func (r *AuthRepository) FindByEmail(email string) (*model.User, error) {
+func (r *authRepository) FindByEmail(email string) (*model.User, error) {
 	var user model.User
 	err := r.db.Where("email = ?", email).First(&user).Error
 	if err != nil {
@@ -39,7 +43,7 @@ func (r *AuthRepository) FindByEmail(email string) (*model.User, error) {
 	return &user, nil
 }
 
-func (r *AuthRepository) FindByPhone(phone string) (*model.User, error) {
+func (r *authRepository) FindByPhone(phone string) (*model.User, error) {
 	var user model.User
 	err := r.db.Where("phone = ?", phone).First(&user).Error
 	if err != nil {

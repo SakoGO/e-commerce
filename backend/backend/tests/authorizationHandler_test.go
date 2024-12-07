@@ -1,8 +1,9 @@
-package handlers
+package tests
 
 import (
 	"bytes"
 	"e-commerce/backend/internal/model"
+	"e-commerce/backend/internal/transport/handlers"
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -118,9 +119,9 @@ func TestAuthHandlerSignUP(t *testing.T) {
 			mockValidator.On("ValidateStruct", &tt.body).Return(tt.validatorError)
 			mockAuthService.On("SignUP", tt.body.Username, tt.body.Email, tt.body.Password, tt.body.Phone).Return(tt.signUpError)
 
-			handler := &Handler{
+			handler := &handlers.Handler{
 				AuthService: mockAuthService,
-				validator:   mockValidator,
+				Validator:   mockValidator,
 			}
 
 			body, _ := json.Marshal(tt.body)
@@ -174,7 +175,7 @@ func TestAuthHandlerSignIN(t *testing.T) {
 
 			mockUserService.On("SignIN", tt.body.Email, tt.body.Password).Return(tt.expectedToken, tt.signInError)
 
-			handler := &Handler{
+			handler := &handlers.Handler{
 				AuthService: mockUserService,
 			}
 
