@@ -26,6 +26,22 @@ func (r *UserRepository) UserFindByID(userID int) (*model.User, error) {
 	return &user, nil
 }
 
+func (r *UserRepository) UserUpdate(user *model.User) error {
+	/*var update model.User
+	err := r.db.First(&update, user.UserID).Error
+	if err != nil {
+		return err
+	}
+
+	update.Username = user.Username
+	update.Email = user.Email
+	update.Password = user.Password
+	update.Phone = user.Phone
+	update.WalletID = user.WalletID */
+
+	return r.db.Save(user).Error
+}
+
 /*
 func (r *UserRepository) UserDelete(userID int) error {
 	var user model.User
@@ -40,17 +56,3 @@ func (r *UserRepository) UserDelete(userID int) error {
 	}
 	return nil
 }*/
-
-func (r *UserRepository) UserUpdate(user *model.User) error {
-	var update model.User
-	err := r.db.First(&update, user.UserID).Error
-	if err != nil {
-		return err
-	}
-	return r.db.Model(&update).Updates(model.User{
-		Username: user.Username,
-		Email:    user.Email,
-		Password: user.Password,
-		Phone:    user.Phone,
-	}).Error
-}

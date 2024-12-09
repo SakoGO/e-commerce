@@ -48,37 +48,44 @@ func (j *JWTMiddleware) keyJWTMiddleware(isAdmin bool) func(http.Handler) http.H
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
-				http.Error(w, "authorization error", http.StatusUnauthorized)
-				return
-			}
+			var role = "user"
+			var userID int
 
-			claims, err := j.ParseJWTtoken(authHeader)
-			if err != nil {
-				log.Error().Err(err).Msg("JWT token error")
-				http.Error(w, "Authorization problem. Please, try later", http.StatusUnauthorized)
-				return
-			}
+			if authHeader != "" {
+				claims, err := j.ParseJWTtoken(authHeader)
+				if err != nil {
+					log.Error().Err(err).Msg("JWT token error")
+					http.Error(w, "Authorization problem. Please, try later", http.StatusUnauthorized)
+					return
+				}
 
-			if isAdmin {
-				role, ok := claims["role"].(string)
-				if !ok || role != "admin" {
-					log.Error().Msg("User have not admin permissions")
-					http.Error(w, "You does not have permissions to it", http.StatusUnauthorized)
+				role = "customer"
+				if isAdmin {
+					if r, ok := claims["role"].(string); ok && r == "admin" {
+						role = "admin"
+					} else {
+						log.Error().Msg("User does not have admin permissions")
+						http.Error(w, "You do not have permissions", http.StatusUnauthorized)
+						return
+					}
+				} else {
+					if r, ok := claims["role"].(string); ok {
+						role = r
+					}
+
+				}
+
+				var ok bool
+				userID, ok = claims["sub"].(int)
+				if !ok {
+					log.Error().Msg("invalid userID")
+					http.Error(w, "Authorization problem. Please try later", http.StatusUnauthorized)
 					return
 				}
 			}
-
-			userID, ok := claims["sub"].(float64)
-			if !ok {
-				log.Error().Msg("invalid userID")
-				http.Error(w, "Authorization problem. Please try later", http.StatusUnauthorized)
-				return
-			}
-
-			ctx := context.WithValue(r.Context(), "userID", int(userID))
+			ctx := context.WithValue(r.Context(), "userID", userID)
 			if isAdmin {
-				ctx = context.WithValue(ctx, "role", claims["role"])
+				ctx = context.WithValue(ctx, "role", role)
 			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -86,16 +93,10 @@ func (j *JWTMiddleware) keyJWTMiddleware(isAdmin bool) func(http.Handler) http.H
 	}
 }
 
-func (j *JWTMiddleware) JWTMiddlewareUser() func(http.Handler) http.Handler {
+func (j *JWTMiddleware) JWTMiddlewareCustomer() func(http.Handler) http.Handler {
 	return j.keyJWTMiddleware(false)
 }
 
 func (j *JWTMiddleware) JWTMiddlewareAdmin() func(http.Handler) http.Handler {
 	return j.keyJWTMiddleware(true)
 }
-
-//TODO: Остановился на полном рефакторинге JWT мидлвара и частичном добавлении функций в юзер
-//TODO: ... репозитории, сервисы и иже с ними.
-//TODO: Остается добить методы, чтобы те точно работали, навесить авторизацию разного уровня...
-//TODO: ... дать одному юзеру админку, а второго оставить без и затестить руками. Далее написать...
-//TODO: ... автотесты для всего этого дела и запушить в гит. После пойдут товары

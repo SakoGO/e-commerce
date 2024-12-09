@@ -20,39 +20,45 @@ type AuthRepository interface {
 	FindByPhone(phone string) (*model.User, error)
 }
 
-type AuthService struct {
-	repo AuthRepository
+type AuthWalletRepository interface {
+	CreateWallet(wallet *model.Wallet) error
+	FindByUserID(userID int) (*model.Wallet, error)
 }
 
-func NewAuthService(repo AuthRepository) *AuthService {
-	return &AuthService{repo: repo}
+type AuthService struct {
+	aRepo AuthRepository
+	wRepo AuthWalletRepository
+}
+
+func NewAuthService(aRepo AuthRepository, wRepo WalletRepository) *AuthService {
+	return &AuthService{aRepo: aRepo, wRepo: wRepo}
 }
 
 func (s *AuthService) FindByUsername(username string) (*model.User, error) {
-	return s.repo.FindByUsername(username)
+	return s.aRepo.FindByUsername(username)
 }
 
 func (s *AuthService) FindByEmail(email string) (*model.User, error) {
-	return s.repo.FindByEmail(email)
+	return s.aRepo.FindByEmail(email)
 }
 
 func (s *AuthService) FindByPhone(phone string) (*model.User, error) {
-	return s.repo.FindByPhone(phone)
+	return s.aRepo.FindByPhone(phone)
 }
 
 func (s *AuthService) SignUP(username, email, password, phone string) error {
 
-	existingUser, err := s.repo.FindByUsername(username)
+	existingUser, err := s.aRepo.FindByUsername(username)
 	if err == nil && existingUser != nil {
 		return fmt.Errorf("username %s is already taken", username)
 	}
 
-	existingEmail, err := s.repo.FindByEmail(email)
+	existingEmail, err := s.aRepo.FindByEmail(email)
 	if err == nil && existingEmail != nil {
 		return fmt.Errorf("email %s is already taken", email)
 	}
 
-	existingPhone, err := s.repo.FindByPhone(phone)
+	existingPhone, err := s.aRepo.FindByPhone(phone)
 	if err == nil && existingPhone != nil {
 		return fmt.Errorf("phone %s is already taken", phone)
 	}
@@ -68,14 +74,14 @@ func (s *AuthService) SignUP(username, email, password, phone string) error {
 		Password: string(hashedPassword),
 		Phone:    phone,
 	}
-	if err := s.repo.SignUP(user); err != nil {
+	if err := s.aRepo.SignUP(user); err != nil {
 		return fmt.Errorf("failed to sign up")
 	}
 	return nil
 }
 
 func (s *AuthService) SignIN(email, password string) (string, error) {
-	user, err := s.repo.FindByEmail(email)
+	user, err := s.aRepo.FindByEmail(email)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return "", fmt.Errorf("failed to find account %s: %v", email, err)
 	}

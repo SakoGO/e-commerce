@@ -8,6 +8,7 @@ import (
 
 type Handler struct {
 	AuthService   AuthService
+	WalletService WalletService
 	UserService   UserService
 	keyJWT        string
 	Validator     Validator
@@ -15,13 +16,14 @@ type Handler struct {
 }
 
 type JWTMiddleware interface {
-	JWTMiddlewareUser() func(http.Handler) http.Handler
+	JWTMiddlewareCustomer() func(http.Handler) http.Handler
 	JWTMiddlewareAdmin() func(http.Handler) http.Handler
 }
 
-func NewHandler(UserService UserService, keyJWT string, validator Validator, jwtMiddleware JWTMiddleware, AuthService AuthService) *Handler {
+func NewHandler(UserService UserService, keyJWT string, validator Validator, jwtMiddleware JWTMiddleware, AuthService AuthService, WalletService WalletService) *Handler {
 	return &Handler{
 		UserService:   UserService,
+		WalletService: WalletService,
 		AuthService:   AuthService,
 		keyJWT:        keyJWT,
 		Validator:     validator,
@@ -37,6 +39,10 @@ func (h *Handler) InitRoutes() *chi.Mux {
 	//For all
 	r.Post("/signup", h.SignUP)
 	r.Post("/signin", h.SignIN)
+
+	//For users
+	r.With(h.jwtMiddleware.JWTMiddlewareCustomer()).Get("/wallet/balance", h.WalletBalance)
+	r.With(h.jwtMiddleware.JWTMiddlewareCustomer()).Put("/update/{id}", h.UserUpdate)
 
 	//For admins
 

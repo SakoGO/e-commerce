@@ -14,7 +14,7 @@ type User struct {
 	Role      string    `json:"role" gorm:"varchar(255);default:customer"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	DeletedAt time.Time `json:"deleted_at"`
+	DeletedAt time.Time `json:"deleted_at" gorm:"default:null"`
 
-	Wallet *Wallet `json:"wallet"`
+	Wallet *Wallet `json:"wallet" gorm:"foreignKey:UserID;references:UserID"`
 }
