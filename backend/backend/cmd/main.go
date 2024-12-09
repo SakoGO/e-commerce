@@ -43,27 +43,35 @@ func main() {
 		os.Exit(1)
 	}
 
-	db, err := db.NewGormDB(cfg)
+	database, err := db.NewGormDB(cfg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to connect database")
 	}
 
-	authRepo, err := repository.NewAuthRepository(db)
+	walletRepo, err := repository.NewWalletRepository(database)
+	if err != nil {
+		log.Error().Err(err).Msg("error creating wallet repository")
+	}
 
-	userRepo, err := repository.NewUserRepository(db)
+	authRepo, err := repository.NewAuthRepository(database, walletRepo)
+	if err != nil {
+		log.Error().Err(err).Msg("error creating auth repository")
+	}
+
+	userRepo, err := repository.NewUserRepository(database)
 	if err != nil {
 		log.Error().Err(err).Msg("error creating user repository")
 	}
 
-	authServ := service.NewAuthService(authRepo)
-
+	authServ := service.NewAuthService(authRepo, walletRepo)
+	walletServ := service.NewWalletService(walletRepo)
 	userServ := service.NewUserService(userRepo)
 
 	valid := validator.NewGoValidator()
 
 	jwtMiddleware := middlewarejwt.NewJWTMiddleware(keyJWT) //
 
-	h := handlers.NewHandler(userServ, keyJWT, valid, jwtMiddleware, authServ) //jwtmiddleware
+	h := handlers.NewHandler(userServ, keyJWT, valid, jwtMiddleware, authServ, walletServ) //jwtmiddleware
 	r := h.InitRoutes()
 
 	srv := transport.NewServer(cfg, r)
