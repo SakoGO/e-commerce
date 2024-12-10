@@ -10,7 +10,6 @@ import (
 type AuthService interface {
 	SignUP(username, email, password, phone string) error
 	SignIN(email, password string) (string, error)
-	FindByUsername(username string) (*model.User, error)
 	FindByEmail(email string) (*model.User, error)
 }
 

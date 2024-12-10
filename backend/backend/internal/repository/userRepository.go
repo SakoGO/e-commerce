@@ -41,6 +41,10 @@ func (r *UserRepository) UserDelete(userID int) error {
 	return nil
 }*/
 
+func (r *UserRepository) UserSave(user *model.User) error {
+	return r.db.Save(user).Error
+}
+
 func (r *UserRepository) UserUpdate(user *model.User) error {
 	var update model.User
 	err := r.db.First(&update, user.UserID).Error

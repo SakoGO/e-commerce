@@ -49,13 +49,13 @@ func main() {
 	}
 
 	authRepo, err := repository.NewAuthRepository(db)
-
+	//ordRepo, err := repository.NewOrderRepository(db)
 	userRepo, err := repository.NewUserRepository(db)
 	if err != nil {
 		log.Error().Err(err).Msg("error creating user repository")
 	}
 
-	authServ := service.NewAuthService(authRepo)
+	authServ := service.NewAuthService(authRepo, userRepo)
 
 	userServ := service.NewUserService(userRepo)
 

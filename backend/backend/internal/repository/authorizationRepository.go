@@ -10,17 +10,22 @@ type AuthRepository struct {
 }
 
 func NewAuthRepository(db *gorm.DB) (*AuthRepository, error) {
-	err := db.AutoMigrate(&model.User{})
+	err := db.AutoMigrate(&model.User{}, &model.Wallet{})
 	if err != nil {
 		return nil, err
 	}
 	return &AuthRepository{db: db}, nil
 }
 
-func (r *AuthRepository) SignUP(user *model.User) error {
+func (r *AuthRepository) Create(user *model.User) error {
 	return r.db.Create(user).Error
 }
 
+func (r *AuthRepository) CreateWallet(wallet *model.Wallet) error {
+	return r.db.Create(wallet).Error
+}
+
+/*
 func (r *AuthRepository) FindByUsername(username string) (*model.User, error) {
 	var user model.User
 	err := r.db.Where("username = ?", username).First(&user).Error
@@ -29,6 +34,7 @@ func (r *AuthRepository) FindByUsername(username string) (*model.User, error) {
 	}
 	return &user, nil
 }
+*/
 
 func (r *AuthRepository) FindByEmail(email string) (*model.User, error) {
 	var user model.User
@@ -39,6 +45,7 @@ func (r *AuthRepository) FindByEmail(email string) (*model.User, error) {
 	return &user, nil
 }
 
+/*
 func (r *AuthRepository) FindByPhone(phone string) (*model.User, error) {
 	var user model.User
 	err := r.db.Where("phone = ?", phone).First(&user).Error
@@ -47,3 +54,4 @@ func (r *AuthRepository) FindByPhone(phone string) (*model.User, error) {
 	}
 	return &user, nil
 }
+*/

@@ -13,49 +13,38 @@ import (
 )
 
 type AuthRepository interface {
-	SignUP(user *model.User) error
-	SignIN(user *model.User) error
-	FindByUsername(username string) (*model.User, error)
+	Create(user *model.User) error
 	FindByEmail(email string) (*model.User, error)
-	FindByPhone(phone string) (*model.User, error)
+	CreateWallet(wallet *model.Wallet) error
+}
+
+type UserRepositoryA interface {
+	UserSave(user *model.User) error
 }
 
 type AuthService struct {
-	repo AuthRepository
+	repo  AuthRepository
+	uRepo UserRepositoryA
 }
 
-func NewAuthService(repo AuthRepository) *AuthService {
-	return &AuthService{repo: repo}
-}
-
-func (s *AuthService) FindByUsername(username string) (*model.User, error) {
-	return s.repo.FindByUsername(username)
+func NewAuthService(repo AuthRepository, uRepo UserRepositoryA) *AuthService {
+	return &AuthService{
+		repo:  repo,
+		uRepo: uRepo,
+	}
 }
 
 func (s *AuthService) FindByEmail(email string) (*model.User, error) {
 	return s.repo.FindByEmail(email)
 }
 
-func (s *AuthService) FindByPhone(phone string) (*model.User, error) {
-	return s.repo.FindByPhone(phone)
+func (s *AuthService) GetAll(db *gorm.DB) (*model.User, error) {
+	var users *model.User
+	err := db.Model(&model.User{}).Preload("Wallet").Find(&users).Error
+	return users, err
 }
 
 func (s *AuthService) SignUP(username, email, password, phone string) error {
-
-	existingUser, err := s.repo.FindByUsername(username)
-	if err == nil && existingUser != nil {
-		return fmt.Errorf("username %s is already taken", username)
-	}
-
-	existingEmail, err := s.repo.FindByEmail(email)
-	if err == nil && existingEmail != nil {
-		return fmt.Errorf("email %s is already taken", email)
-	}
-
-	existingPhone, err := s.repo.FindByPhone(phone)
-	if err == nil && existingPhone != nil {
-		return fmt.Errorf("phone %s is already taken", phone)
-	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -68,9 +57,26 @@ func (s *AuthService) SignUP(username, email, password, phone string) error {
 		Password: string(hashedPassword),
 		Phone:    phone,
 	}
-	if err := s.repo.SignUP(user); err != nil {
-		return fmt.Errorf("failed to sign up")
+	if err := s.repo.Create(user); err != nil {
+		log.Error().Err(err).Msg("Failed to signUP")
+		return fmt.Errorf("failed to sign up: %v", err)
 	}
+
+	wallet := &model.Wallet{
+		WalletID: user.UserID,
+	}
+
+	if err := s.repo.CreateWallet(wallet); err != nil {
+		log.Error().Err(err).Msg("Failed to create wallet")
+		return fmt.Errorf("failed to create wallet: %v", err)
+	}
+
+	user.WalletID = wallet.WalletID
+	if err := s.uRepo.UserSave(user); err != nil {
+		log.Error().Err(err).Msg("Error to update user with walletID")
+		return fmt.Errorf("failed to update user with walletID: %v", err)
+	}
+
 	return nil
 }
 
