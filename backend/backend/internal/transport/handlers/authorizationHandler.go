@@ -13,10 +13,6 @@ type AuthService interface {
 	FindByEmail(email string) (*model.User, error)
 }
 
-type Validator interface {
-	ValidateStruct(interface{}) error
-}
-
 func (h *Handler) SignUP(w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -33,13 +29,14 @@ func (h *Handler) SignUP(w http.ResponseWriter, r *http.Request) {
 
 	err = h.AuthService.SignUP(user.Username, user.Email, user.Password, user.Phone)
 	if err != nil {
+		log.Error().Err(err).Msg("Error to signUP user")
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(map[string]string{
-		"-": "User successfully registered"})
+		"message": "User successfully registered"})
 	if err != nil {
 		http.Error(w, "could not encode response", http.StatusInternalServerError)
 	}

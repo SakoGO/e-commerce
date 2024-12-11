@@ -21,10 +21,6 @@ func (r *AuthRepository) Create(user *model.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *AuthRepository) CreateWallet(wallet *model.Wallet) error {
-	return r.db.Create(wallet).Error
-}
-
 /*
 func (r *AuthRepository) FindByUsername(username string) (*model.User, error) {
 	var user model.User

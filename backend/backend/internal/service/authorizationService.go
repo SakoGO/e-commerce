@@ -15,22 +15,15 @@ import (
 type AuthRepository interface {
 	Create(user *model.User) error
 	FindByEmail(email string) (*model.User, error)
-	CreateWallet(wallet *model.Wallet) error
-}
-
-type UserRepositoryA interface {
-	UserSave(user *model.User) error
 }
 
 type AuthService struct {
-	repo  AuthRepository
-	uRepo UserRepositoryA
+	repo AuthRepository
 }
 
-func NewAuthService(repo AuthRepository, uRepo UserRepositoryA) *AuthService {
+func NewAuthService(repo AuthRepository) *AuthService {
 	return &AuthService{
-		repo:  repo,
-		uRepo: uRepo,
+		repo: repo,
 	}
 }
 
@@ -45,7 +38,6 @@ func (s *AuthService) GetAll(db *gorm.DB) (*model.User, error) {
 }
 
 func (s *AuthService) SignUP(username, email, password, phone string) error {
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to hash password")
@@ -56,25 +48,12 @@ func (s *AuthService) SignUP(username, email, password, phone string) error {
 		Email:    email,
 		Password: string(hashedPassword),
 		Phone:    phone,
+		Wallet:   &model.Wallet{},
 	}
+
 	if err := s.repo.Create(user); err != nil {
 		log.Error().Err(err).Msg("Failed to signUP")
 		return fmt.Errorf("failed to sign up: %v", err)
-	}
-
-	wallet := &model.Wallet{
-		WalletID: user.UserID,
-	}
-
-	if err := s.repo.CreateWallet(wallet); err != nil {
-		log.Error().Err(err).Msg("Failed to create wallet")
-		return fmt.Errorf("failed to create wallet: %v", err)
-	}
-
-	user.WalletID = wallet.WalletID
-	if err := s.uRepo.UserSave(user); err != nil {
-		log.Error().Err(err).Msg("Error to update user with walletID")
-		return fmt.Errorf("failed to update user with walletID: %v", err)
 	}
 
 	return nil

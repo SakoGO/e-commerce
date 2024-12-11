@@ -7,8 +7,8 @@ import (
 //TODO: Функции юзера:
 
 type UserRepository interface {
+	UserSave(user *model.User) error
 	UserFindByID(userID int) (*model.User, error) //
-	//UserDelete(userID int) error                  //
 }
 
 type UserService struct {
