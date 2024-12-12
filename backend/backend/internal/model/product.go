@@ -1,12 +1,15 @@
 package model
 
 type Product struct {
-	ProductID int      `json:"id" gorm:"primaryKey"`
-	Category  Category `gorm:"foreignkey:CategoryID"`
-	Name      string   `json:"name"`
-	Image     string   `json:"image"`
-	Stock     int      `json:"stock"`
-	Price     int      `json:"price"`
+	ProductID int `json:"id" gorm:"primaryKey"`
+	//	CategoryID  int      `json:"category_id" gorm:"index"`
+	Category    Category `gorm:"foreignkey:CategoryID"`
+	SellerID    int      `json:"seller_id" gorm:"index"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Price       string   `json:"price"`
+	Stock       string   `json:"stock"`
+	Image       string   `json:"image"`
 }
 
 type Category struct {

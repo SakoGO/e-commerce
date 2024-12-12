@@ -32,6 +32,17 @@ func (s *ShopService) CreateShop(userID int, name, email, description string) er
 		Products:    []*model.Product{},
 	}
 
+	user, err := s.uRepo.UserFindByID(userID)
+	if err != nil {
+		log.Error().Msg("Failed to create shop")
+		return fmt.Errorf("failed to create shop: %v", err)
+	}
+
+	if user.HasShop {
+		log.Error().Msg("User already has shop")
+		return fmt.Errorf("You already has shop")
+	}
+
 	if err := s.repo.CreateShop(shop); err != nil {
 		log.Error().Err(err).Msg("Failed to create shop")
 		return fmt.Errorf("failed to create shop: %v", err)

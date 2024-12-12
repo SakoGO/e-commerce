@@ -14,21 +14,21 @@ type ShopService interface {
 func (h *Handler) CreateShop(w http.ResponseWriter, r *http.Request) {
 	var shop model.Shop
 	if err := json.NewDecoder(r.Body).Decode(&shop); err != nil {
-		http.Error(w, "incorret data format", http.StatusBadRequest)
+		http.Error(w, "incorrect data format", http.StatusBadRequest)
 		return
 	}
 
 	err := h.validator.ValidateStruct(&shop)
 	if err != nil {
 		log.Error().Err(err).Msg("Validation failed")
-		http.Error(w, "Incorrect data for creating shop", http.StatusBadRequest)
+		http.Error(w, "incorrect data for creating shop", http.StatusBadRequest)
 		return
 	}
 
 	userID, ok := r.Context().Value("userID").(int)
 	if !ok {
 		log.Error().Msg("User ID not found in context")
-		http.Error(w, "User not authorized", http.StatusUnauthorized)
+		http.Error(w, "user not authorized", http.StatusUnauthorized)
 		return
 	}
 

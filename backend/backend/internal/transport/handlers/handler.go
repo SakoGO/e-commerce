@@ -7,12 +7,13 @@ import (
 )
 
 type Handler struct {
-	AuthService   AuthService
-	UserService   UserService
-	ShopService   ShopService
-	keyJWT        string
-	validator     Validator
-	jwtMiddleware JWTMiddleware
+	AuthService    AuthService
+	UserService    UserService
+	ShopService    ShopService
+	ProductService ProductService
+	keyJWT         string
+	validator      Validator
+	jwtMiddleware  JWTMiddleware
 }
 
 type JWTMiddleware interface {
@@ -21,15 +22,16 @@ type JWTMiddleware interface {
 }
 
 func NewHandler(UserService UserService, keyJWT string, validator Validator, jwtMiddleware JWTMiddleware,
-	AuthService AuthService, ShopService ShopService) *Handler {
+	AuthService AuthService, ShopService ShopService, ProductService ProductService) *Handler {
 
 	return &Handler{
-		UserService:   UserService,
-		AuthService:   AuthService,
-		ShopService:   ShopService,
-		keyJWT:        keyJWT,
-		validator:     validator,
-		jwtMiddleware: jwtMiddleware,
+		UserService:    UserService,
+		AuthService:    AuthService,
+		ShopService:    ShopService,
+		ProductService: ProductService,
+		keyJWT:         keyJWT,
+		validator:      validator,
+		jwtMiddleware:  jwtMiddleware,
 	}
 }
 
@@ -44,6 +46,7 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	//For Users
 	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/create_shop", h.CreateShop)
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/create_product", h.CreateProduct)
 
 	//For admins
 
