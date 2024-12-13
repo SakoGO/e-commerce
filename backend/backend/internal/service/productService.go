@@ -8,6 +8,7 @@ import (
 
 type ProductRepository interface {
 	CreateProduct(product *model.Product) error
+	GetProductByID(productID int) (*model.Product, error)
 }
 
 type ProductService struct {
@@ -50,4 +51,12 @@ func (s *ProductService) CreateProduct(ownerID, shopID int, name, description, p
 		return fmt.Errorf("failed to create product: %v", err)
 	}
 	return nil
+}
+
+func (s *ProductService) GetProductByID(productID int) (*model.Product, error) {
+	product, err := s.pRepo.GetProductByID(productID)
+	if err != nil {
+		return nil, err
+	}
+	return product, nil
 }

@@ -43,6 +43,8 @@ func (h *Handler) InitRoutes() *chi.Mux {
 	//For all
 	r.Post("/signup", h.SignUP)
 	r.Post("/signin", h.SignIN)
+	r.Get("/get/shop/{id}", h.GetShopID)
+	r.Get("/get/product/{id}", h.GetProductByID)
 
 	//For Users
 	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/create_shop", h.CreateShop)

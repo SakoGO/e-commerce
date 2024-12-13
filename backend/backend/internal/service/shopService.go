@@ -54,6 +54,14 @@ func (s *ShopService) CreateShop(userID int, name, email, description string) er
 	return nil
 }
 
+func (s *ShopService) GetShopID(shopID int) (*model.Shop, error) {
+	shop, err := s.sRepo.GetShopID(shopID)
+	if err != nil {
+		return nil, err
+	}
+	return shop, nil
+}
+
 func (s *ShopService) UpdateShop(shopID, ownerID int, name, description, email string) error {
 
 	Shop, err := s.sRepo.GetShopID(shopID)

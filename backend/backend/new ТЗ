@@ -1,3 +1,29 @@
+TODO:: CRUD по Products
+    TODO:: Реализовать функцию массового удаления всех Products в Shop в CRUD Products
+        TODO:: При удалении shop автоматически удалять всё привязанные к нему Products
+TODO:: Реализовать Category для Products посредствам "словаря" в бд
+TODO:: Реализовать Cart
+TODO:: Реализовать Order
+TODO:: Реализовать Payment
+    TODO:: Прикрутить платёжку
+TODO:: После основной логики пилим тесты. Пару сервисов оттестить самому, остальное Claude.ai
+///////////////////////////
+После реализации основной логики приложения:
+TODO:: Прикрутить prometheus и grafana
+TODO:: Реализовать кэширование
+TODO:: Сделать поисковик, прикрутить Elastic Search
+TODO:: Сделать Docker Compose
+
+TODO:: Zarabativat' 300k/nanoSec
+
+
+
+
+
+
+
+
+
 БД: GORM, MYSQL
 Сервер: chi
 Логирование: zerolog
