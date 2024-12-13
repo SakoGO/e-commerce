@@ -4,7 +4,7 @@ type Product struct {
 	ProductID int `json:"id" gorm:"primaryKey"`
 	//	CategoryID  int      `json:"category_id" gorm:"index"`
 	Category    Category `gorm:"foreignkey:CategoryID"`
-	SellerID    int      `json:"seller_id" gorm:"index"`
+	ShopID      int      `json:"shopID" gorm:"index"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Price       string   `json:"price"`

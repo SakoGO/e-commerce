@@ -30,3 +30,48 @@ func (r *ShopRepository) CreateShop(shop *model.Shop) error {
 		return nil
 	})
 }
+
+func (r *ShopRepository) GetShopID(shopID int) (*model.Shop, error) {
+	var shop model.Shop
+	err := r.db.First(&shop, shopID).Error
+	if err != nil {
+		return nil, err
+	}
+	return &shop, nil
+}
+
+func (r *ShopRepository) UpdateShop(shop *model.Shop) error {
+	var update model.Shop
+	err := r.db.First(&update, shop.ShopID).Error
+	if err != nil {
+		return err
+	}
+
+	update.Name = shop.Name
+	update.Description = shop.Description
+	update.Email = shop.Email
+
+	return r.db.Save(&update).Error
+}
+
+func (r *ShopRepository) DeleteShop(shopID int) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var shop model.Shop
+
+		err := r.db.First(&shop, shopID).Error
+		if err != nil {
+			return err
+		}
+		err = r.db.Delete(&shop).Error
+		if err != nil {
+			return err
+		}
+
+		err = r.db.Model(&model.User{}).Where("user_id = ?", shop.OwnerID).Update("has_shop", false).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}

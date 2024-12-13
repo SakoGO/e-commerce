@@ -8,7 +8,7 @@ import (
 )
 
 type ProductService interface {
-	CreateProduct(ownerID int, name, description, price, stock, image string) error
+	CreateProduct(ownerID, ShopID int, name, description, price, stock, image string) error
 }
 
 func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +32,7 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.ProductService.CreateProduct(ownerID, product.Name, product.Description, product.Price, product.Stock, product.Image)
+	err = h.ProductService.CreateProduct(ownerID, product.ShopID, product.Name, product.Description, product.Price, product.Stock, product.Image)
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating product")
 		http.Error(w, err.Error(), http.StatusConflict)

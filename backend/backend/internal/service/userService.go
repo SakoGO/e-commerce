@@ -8,7 +8,7 @@ import (
 
 type UserRepository interface {
 	UserSave(user *model.User) error
-	UserFindByID(userID int) (*model.User, error) //
+	UserFindByID(userID int) (*model.User, error)
 }
 
 type UserService struct {

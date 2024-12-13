@@ -26,21 +26,6 @@ func (r *UserRepository) UserFindByID(userID int) (*model.User, error) {
 	return &user, nil
 }
 
-/*
-func (r *UserRepository) UserDelete(userID int) error {
-	var user model.User
-	err := r.db.First(&user, userID).Error
-	if err != nil {
-		return err
-	}
-
-	err = r.db.Delete(&user).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}*/
-
 func (r *UserRepository) UserSave(user *model.User) error {
 	return r.db.Save(user).Error
 }

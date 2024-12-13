@@ -47,6 +47,8 @@ func (h *Handler) InitRoutes() *chi.Mux {
 	//For Users
 	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/create_shop", h.CreateShop)
 	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/create_product", h.CreateProduct)
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/update/{id}", h.UpdateShop)
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/delete/{id}", h.DeleteShop)
 
 	//For admins
 
