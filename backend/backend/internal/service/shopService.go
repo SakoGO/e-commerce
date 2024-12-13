@@ -14,13 +14,13 @@ type ShopRepository interface {
 }
 
 type ShopService struct {
-	repo  ShopRepository
+	sRepo ShopRepository
 	uRepo UserRepository
 }
 
-func NewShopService(repo ShopRepository, uRepo UserRepository) *ShopService {
+func NewShopService(sRepo ShopRepository, uRepo UserRepository) *ShopService {
 	return &ShopService{
-		repo:  repo,
+		sRepo: sRepo,
 		uRepo: uRepo,
 	}
 }
@@ -46,7 +46,7 @@ func (s *ShopService) CreateShop(userID int, name, email, description string) er
 		return fmt.Errorf("You already has shop")
 	}
 
-	if err := s.repo.CreateShop(shop); err != nil {
+	if err := s.sRepo.CreateShop(shop); err != nil {
 		log.Error().Err(err).Msg("Failed to create shop")
 		return fmt.Errorf("failed to create shop: %v", err)
 	}
@@ -56,7 +56,7 @@ func (s *ShopService) CreateShop(userID int, name, email, description string) er
 
 func (s *ShopService) UpdateShop(shopID, ownerID int, name, description, email string) error {
 
-	Shop, err := s.repo.GetShopID(shopID)
+	Shop, err := s.sRepo.GetShopID(shopID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to find shop by id")
 		return fmt.Errorf("failed to find shop by id: %v", err)
@@ -75,7 +75,7 @@ func (s *ShopService) UpdateShop(shopID, ownerID int, name, description, email s
 		OwnerID:     ownerID,
 	}
 
-	if err := s.repo.UpdateShop(updatedShop); err != nil {
+	if err := s.sRepo.UpdateShop(updatedShop); err != nil {
 		log.Error().Err(err).Msg("Failed to update shop")
 		return fmt.Errorf("failed to update shop: %v", err)
 	}
@@ -84,7 +84,7 @@ func (s *ShopService) UpdateShop(shopID, ownerID int, name, description, email s
 
 func (s *ShopService) DeleteShop(shopID, ownerID int) error {
 
-	Shop, err := s.repo.GetShopID(shopID)
+	Shop, err := s.sRepo.GetShopID(shopID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to find shop by id")
 		return fmt.Errorf("failed to find shop by id: %v", err)
@@ -95,7 +95,7 @@ func (s *ShopService) DeleteShop(shopID, ownerID int) error {
 		return fmt.Errorf("the owner ID in the request does not match the actual one")
 	}
 
-	if err := s.repo.DeleteShop(shopID); err != nil {
+	if err := s.sRepo.DeleteShop(shopID); err != nil {
 		log.Error().Err(err).Msg("Failed to delete shop")
 		return fmt.Errorf("failed to delete shop: %v", err)
 	}

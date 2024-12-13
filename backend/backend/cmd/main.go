@@ -60,7 +60,7 @@ func main() {
 	authServ := service.NewAuthService(authRepo)
 	shopServ := service.NewShopService(shopRepo, userRepo)
 	userServ := service.NewUserService(userRepo)
-	prodServ := service.NewProductRepository(prodRepo)
+	prodServ := service.NewProductRepository(prodRepo, shopRepo)
 
 	valid := validator.NewGoValidator()
 

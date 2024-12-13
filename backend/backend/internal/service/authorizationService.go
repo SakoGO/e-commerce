@@ -18,17 +18,17 @@ type AuthRepository interface {
 }
 
 type AuthService struct {
-	repo AuthRepository
+	aRepo AuthRepository
 }
 
-func NewAuthService(repo AuthRepository) *AuthService {
+func NewAuthService(aRepo AuthRepository) *AuthService {
 	return &AuthService{
-		repo: repo,
+		aRepo: aRepo,
 	}
 }
 
 func (s *AuthService) FindByEmail(email string) (*model.User, error) {
-	return s.repo.FindByEmail(email)
+	return s.aRepo.FindByEmail(email)
 }
 
 func (s *AuthService) GetAll(db *gorm.DB) (*model.User, error) {
@@ -51,7 +51,7 @@ func (s *AuthService) SignUP(username, email, password, phone string) error {
 		Wallet:   &model.Wallet{},
 	}
 
-	if err := s.repo.Create(user); err != nil {
+	if err := s.aRepo.Create(user); err != nil {
 		log.Error().Err(err).Msg("Failed to signUP")
 		return fmt.Errorf("failed to sign up: %v", err)
 	}
@@ -60,7 +60,7 @@ func (s *AuthService) SignUP(username, email, password, phone string) error {
 }
 
 func (s *AuthService) SignIN(email, password string) (string, error) {
-	user, err := s.repo.FindByEmail(email)
+	user, err := s.aRepo.FindByEmail(email)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return "", fmt.Errorf("failed to find account %s: %v", email, err)
 	}

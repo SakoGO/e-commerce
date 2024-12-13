@@ -8,26 +8,23 @@ import (
 
 type ProductRepository interface {
 	CreateProduct(product *model.Product) error
-	GetShopByID(id int) (*model.Shop, error)
 }
 
 type ProductService struct {
-	repo ProductRepository
+	pRepo ProductRepository
+	sRepo ShopRepository
 }
 
-func NewProductRepository(repo ProductRepository) *ProductService {
+func NewProductRepository(pRepo ProductRepository, sRepo ShopRepository) *ProductService {
 	return &ProductService{
-		repo: repo,
+		pRepo: pRepo,
+		sRepo: sRepo,
 	}
-}
-
-func (s *ProductService) GetShopByID(shopID int) (*model.Shop, error) {
-	return s.repo.GetShopByID(shopID)
 }
 
 func (s *ProductService) CreateProduct(ownerID, shopID int, name, description, price, stock, image string) error {
 
-	shop, err := s.repo.GetShopByID(shopID)
+	shop, err := s.sRepo.GetShopID(shopID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to find shop by id")
 		return fmt.Errorf("failed to find shop by id: %v", err)
@@ -48,7 +45,7 @@ func (s *ProductService) CreateProduct(ownerID, shopID int, name, description, p
 		Category:    model.Category{},
 	}
 
-	if err := s.repo.CreateProduct(product); err != nil {
+	if err := s.pRepo.CreateProduct(product); err != nil {
 		log.Error().Err(err).Msg("Failed to create product")
 		return fmt.Errorf("failed to create product: %v", err)
 	}

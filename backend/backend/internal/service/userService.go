@@ -12,19 +12,19 @@ type UserRepository interface {
 }
 
 type UserService struct {
-	repo UserRepository
+	uRepo UserRepository
 }
 
 func (s *UserService) UserFindByID(userID int) (*model.User, error) {
-	return s.repo.UserFindByID(userID)
+	return s.uRepo.UserFindByID(userID)
 }
 
 //func (s *UserService) UserDelete(userID int) error {
 //	return s.repo.UserDelete(userID)
 //}
 
-func NewUserService(repo UserRepository) *UserService {
+func NewUserService(uRepo UserRepository) *UserService {
 	return &UserService{
-		repo: repo,
+		uRepo: uRepo,
 	}
 }

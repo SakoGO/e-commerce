@@ -20,12 +20,3 @@ func NewProductRepository(db *gorm.DB) (*ProductRepository, error) {
 func (r *ProductRepository) CreateProduct(product *model.Product) error {
 	return r.db.Create(product).Error
 }
-
-func (r *ProductRepository) GetShopByID(shopID int) (*model.Shop, error) {
-	var shop model.Shop
-	err := r.db.First(&shop, shopID).Error
-	if err != nil {
-		return nil, err
-	}
-	return &shop, nil
-}
