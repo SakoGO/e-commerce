@@ -58,11 +58,7 @@ func (r *ShopRepository) DeleteShop(shopID int) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		var shop model.Shop
 
-		err := r.db.First(&shop, shopID).Error
-		if err != nil {
-			return err
-		}
-		err = r.db.Delete(&shop).Error
+		err := r.db.Where("shop_id = ?", shopID).Delete(&shop).Error
 		if err != nil {
 			return err
 		}

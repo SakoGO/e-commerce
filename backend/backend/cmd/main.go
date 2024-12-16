@@ -53,6 +53,7 @@ func main() {
 	shopRepo, err := repository.NewShopRepository(db)
 	userRepo, err := repository.NewUserRepository(db)
 	prodRepo, err := repository.NewProductRepository(db)
+	ctgRepo, err := repository.NewCategoryRepository(db)
 	//if err != nil {
 	//	log.Error().Err(err).Msg("error creating user repository")
 	//}
@@ -60,13 +61,14 @@ func main() {
 	authServ := service.NewAuthService(authRepo)
 	shopServ := service.NewShopService(shopRepo, userRepo)
 	userServ := service.NewUserService(userRepo)
-	prodServ := service.NewProductRepository(prodRepo, shopRepo)
+	prodServ := service.NewProductService(prodRepo, shopRepo)
+	ctgServ := service.NewCategoryService(ctgRepo)
 
 	valid := validator.NewGoValidator()
 
 	jwtMiddleware := middlewarejwt.NewJWTMiddleware(keyJWT) //
 
-	h := handlers.NewHandler(userServ, keyJWT, valid, jwtMiddleware, authServ, shopServ, prodServ) //jwtmiddleware
+	h := handlers.NewHandler(userServ, keyJWT, valid, jwtMiddleware, authServ, shopServ, prodServ, ctgServ) //jwtmiddleware
 	r := h.InitRoutes()
 
 	srv := transport.NewServer(cfg, r)

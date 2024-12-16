@@ -7,13 +7,14 @@ import (
 )
 
 type Handler struct {
-	AuthService    AuthService
-	UserService    UserService
-	ShopService    ShopService
-	ProductService ProductService
-	keyJWT         string
-	validator      Validator
-	jwtMiddleware  JWTMiddleware
+	AuthService     AuthService
+	UserService     UserService
+	ShopService     ShopService
+	CategoryService CategoryService
+	ProductService  ProductService
+	keyJWT          string
+	validator       Validator
+	jwtMiddleware   JWTMiddleware
 }
 
 type JWTMiddleware interface {
@@ -22,16 +23,17 @@ type JWTMiddleware interface {
 }
 
 func NewHandler(UserService UserService, keyJWT string, validator Validator, jwtMiddleware JWTMiddleware,
-	AuthService AuthService, ShopService ShopService, ProductService ProductService) *Handler {
+	AuthService AuthService, ShopService ShopService, ProductService ProductService, CategoryService CategoryService) *Handler {
 
 	return &Handler{
-		UserService:    UserService,
-		AuthService:    AuthService,
-		ShopService:    ShopService,
-		ProductService: ProductService,
-		keyJWT:         keyJWT,
-		validator:      validator,
-		jwtMiddleware:  jwtMiddleware,
+		UserService:     UserService,
+		AuthService:     AuthService,
+		ShopService:     ShopService,
+		ProductService:  ProductService,
+		CategoryService: CategoryService,
+		keyJWT:          keyJWT,
+		validator:       validator,
+		jwtMiddleware:   jwtMiddleware,
 	}
 }
 
@@ -40,20 +42,26 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	r.Use(middleware.Logger)
 
-	//For all
+	//auth
 	r.Post("/signup", h.SignUP)
 	r.Post("/signin", h.SignIN)
+
+	//shop
 	r.Get("/get/shop/{id}", h.GetShopID)
 	r.Get("/get/product/{id}", h.GetProductByID)
+	r.Get("/get/product/byShopID/{id}", h.GetProductsByShopID)
 
-	//For Users
 	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/create_shop", h.CreateShop)
 	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/create_product", h.CreateProduct)
 	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/update/{id}", h.UpdateShop)
 	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/delete/{id}", h.DeleteShop)
 
-	//For admins
+	//product
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/product/update/{id}", h.UpdateProduct)
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/product/delete/{id}", h.DeleteProduct)
 
+	//For admins
+	r.With(h.jwtMiddleware.JWTMiddlewareAdmin()).Post("/category/create", h.CreateCategory)
 	// r.With(h.jwtMiddleware.JWTMiddlewareAdmin()).Get("/user/{username}", h.UserFindByUsername)
 	// r.With(h.jwtMiddleware.JWTMiddlewareAdmin()).Get("/user/{email}", h.UserFindByEmail)
 	return r
