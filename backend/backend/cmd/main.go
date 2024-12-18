@@ -43,35 +43,33 @@ func main() {
 		os.Exit(1)
 	}
 
-	database, err := db.NewGormDB(cfg)
+	db, err := db.NewGormDB(cfg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to connect database")
 	}
 
-	walletRepo, err := repository.NewWalletRepository(database)
-	if err != nil {
-		log.Error().Err(err).Msg("error creating wallet repository")
-	}
+	authRepo, err := repository.NewAuthRepository(db)
+	//ordRepo, err := repository.NewOrderRepository(db)
+	shopRepo, err := repository.NewShopRepository(db)
+	userRepo, err := repository.NewUserRepository(db)
+	prodRepo, err := repository.NewProductRepository(db)
+	ctgRepo, err := repository.NewCategoryRepository(db)
+	//if err != nil {
+	//	log.Error().Err(err).Msg("error creating user repository")
+	//}
 
-	authRepo, err := repository.NewAuthRepository(database, walletRepo)
-	if err != nil {
-		log.Error().Err(err).Msg("error creating auth repository")
-	}
-
-	userRepo, err := repository.NewUserRepository(database)
-	if err != nil {
-		log.Error().Err(err).Msg("error creating user repository")
-	}
-
-	authServ := service.NewAuthService(authRepo, walletRepo)
-	walletServ := service.NewWalletService(walletRepo)
-	userServ := service.NewUserService(userRepo)
+	authServ := service.NewAuthService(authRepo)
+	shopServ := service.NewShopService(shopRepo, userRepo)
+	//	userServ := service.NewUserService(userRepo)
+	prodServ := service.NewProductService(prodRepo, shopRepo)
+	ctgServ := service.NewCategoryService(ctgRepo)
 
 	valid := validator.NewGoValidator()
 
 	jwtMiddleware := middlewarejwt.NewJWTMiddleware(keyJWT) //
 
-	h := handlers.NewHandler(userServ, keyJWT, valid, jwtMiddleware, authServ, walletServ) //jwtmiddleware
+	h := handlers.NewHandler(keyJWT, valid, jwtMiddleware, shopServ, authServ, prodServ, ctgServ) //jwtmiddleware
+
 	r := h.InitRoutes()
 
 	srv := transport.NewServer(cfg, r)

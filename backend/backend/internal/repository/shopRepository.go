@@ -2,7 +2,6 @@ package repository
 
 import (
 	"e-commerce/backend/internal/model"
-	"errors"
 	"gorm.io/gorm"
 )
 
@@ -10,42 +9,72 @@ type ShopRepository struct {
 	db *gorm.DB
 }
 
-func NewShopRepository(db *gorm.DB) *ShopRepository {
-	return &ShopRepository{db: db}
+func NewShopRepository(db *gorm.DB) (*ShopRepository, error) {
+	err := db.AutoMigrate(&model.Shop{})
+	if err != nil {
+		return nil, err
+	}
+	return &ShopRepository{db: db}, nil
 }
 
-func (r *ShopRepository) Create(shop *model.Shop, ownerID int) error {
-	shop.OwnerID = ownerID
-	return r.db.Create(shop).Error
+func (r *ShopRepository) CreateShop(shop *model.Shop) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		err := r.db.Create(shop).Error
+		if err != nil {
+			return err
+		}
+		err = r.db.Model(&model.User{}).Where("user_id = ?", shop.OwnerID).Update("has_shop", true).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
-func (r *ShopRepository) GetByID(id, ownerID int) (*model.Shop, error) {
+func (r *ShopRepository) GetShopID(shopID int) (*model.Shop, error) {
 	var shop model.Shop
-	if err := r.db.Preload("Products").Preload("Owner").Where("id = ? AND owner_id = ?", id, ownerID).First(&shop).Error; err != nil {
+	err := r.db.First(&shop, shopID).Error
+	if err != nil {
 		return nil, err
 	}
 	return &shop, nil
 }
 
-func (r *ShopRepository) GetAll(ownerID int) ([]model.Shop, error) {
-	var shops []model.Shop
-	if err := r.db.Preload("Owner").Where("owner_id = ?", ownerID).Find(&shops).Error; err != nil {
-		return nil, err
+func (r *ShopRepository) UpdateShop(shop *model.Shop) error {
+	var update model.Shop
+	err := r.db.First(&update, shop.ShopID).Error
+	if err != nil {
+		return err
 	}
-	return shops, nil
+
+	update.Name = shop.Name
+	update.Description = shop.Description
+	update.Email = shop.Email
+
+	return r.db.Save(&update).Error
 }
 
-func (r *ShopRepository) Update(shop *model.Shop, ownerID int) error {
-	if err := r.db.Where("id = ? AND owner_id = ?", shop.ShopID, ownerID).First(shop).Error; err != nil {
-		return errors.New("shop not found or not owned by this user")
-	}
-	return r.db.Save(shop).Error
-}
+func (r *ShopRepository) DeleteShop(shopID, ownerID int) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
 
-func (r *ShopRepository) Delete(id, ownerID int) error {
-	var shop model.Shop
-	if err := r.db.Where("id = ? AND owner_id = ?", id, ownerID).First(&shop).Error; err != nil {
-		return errors.New("shop not found or not owned by this user")
-	}
-	return r.db.Delete(&shop).Error
+		//1 Удаляем все продукты по shopID
+		//2 Удаляем шоп
+		//3 Ставим пользователю hasShop = 0
+		err := r.db.Where("shop_id = ?", shopID).Delete(&model.Product{}).Error
+		if err != nil {
+			return err
+		}
+
+		err = r.db.Where("shop_id = ?", shopID).Delete(&model.Shop{}).Error
+		if err != nil {
+			return err
+		}
+
+		err = r.db.Model(&model.User{}).Where("user_id = ?", ownerID).Update("has_shop", false).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

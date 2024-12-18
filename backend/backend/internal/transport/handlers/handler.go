@@ -3,31 +3,28 @@ package handlers
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"net/http"
 )
 
 type Handler struct {
-	AuthService   AuthService
-	WalletService WalletService
-	UserService   UserService
-	keyJWT        string
-	Validator     Validator
-	jwtMiddleware JWTMiddleware
+	ShopHandler     *ShopHandler
+	AuthHandler     *AuthHandler
+	ProductHandler  *ProductHandler
+	CategoryHandler *CategoryHandler
+	keyJWT          string
+	validator       Validator
+	jwtMiddleware   JWTMiddleware
 }
 
-type JWTMiddleware interface {
-	JWTMiddlewareCustomer() func(http.Handler) http.Handler
-	JWTMiddlewareAdmin() func(http.Handler) http.Handler
-}
+func NewHandler(keyJWT string, validator Validator, jwtMiddleware JWTMiddleware, ShopService ShopService, AuthService AuthService, ProductService ProductService, CategoryService CategoryService) *Handler {
 
-func NewHandler(UserService UserService, keyJWT string, validator Validator, jwtMiddleware JWTMiddleware, AuthService AuthService, WalletService WalletService) *Handler {
 	return &Handler{
-		UserService:   UserService,
-		WalletService: WalletService,
-		AuthService:   AuthService,
-		keyJWT:        keyJWT,
-		Validator:     validator,
-		jwtMiddleware: jwtMiddleware,
+		AuthHandler:     NewAuthHandler(AuthService, validator),
+		ShopHandler:     NewShopHandler(ShopService, validator),
+		ProductHandler:  NewProductHandler(ProductService, validator),
+		CategoryHandler: NewCategoryHandler(CategoryService),
+		keyJWT:          keyJWT,
+		validator:       validator,
+		jwtMiddleware:   jwtMiddleware,
 	}
 }
 
@@ -36,16 +33,27 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	r.Use(middleware.Logger)
 
-	//For all
-	r.Post("/signup", h.SignUP)
-	r.Post("/signin", h.SignIN)
+	//auth
+	r.Post("/signup", h.AuthHandler.SignUP)
+	r.Post("/signin", h.AuthHandler.SignIN)
 
-	//For users
-	r.With(h.jwtMiddleware.JWTMiddlewareCustomer()).Get("/wallet/balance", h.WalletBalance)
-	r.With(h.jwtMiddleware.JWTMiddlewareCustomer()).Put("/update/{id}", h.UserUpdate)
+	//shop
+	r.Get("/get/shop/{id}", h.ShopHandler.GetShopID)
+	r.Get("/get/product/{id}", h.ProductHandler.GetProductByID)
+	r.Get("/get/product/byShopID/{id}", h.ProductHandler.GetProductsByShopID)
+
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/create_shop", h.ShopHandler.CreateShop)
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/shop/update/{id}", h.ShopHandler.UpdateShop)
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Delete("/shop/delete/{id}", h.ShopHandler.DeleteShop)
+
+	//product
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/product/create_product", h.ProductHandler.CreateProduct)
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Post("/product/update", h.ProductHandler.UpdateProduct)
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Delete("/product/delete/{id}", h.ProductHandler.DeleteProduct)
+	r.With(h.jwtMiddleware.JWTMiddlewareUser()).Delete("/product/delete/shop/{id}", h.ProductHandler.DeleteProductsByShopID)
 
 	//For admins
-
+	r.With(h.jwtMiddleware.JWTMiddlewareAdmin()).Post("/category/create", h.CategoryHandler.CreateCategory)
 	// r.With(h.jwtMiddleware.JWTMiddlewareAdmin()).Get("/user/{username}", h.UserFindByUsername)
 	// r.With(h.jwtMiddleware.JWTMiddlewareAdmin()).Get("/user/{email}", h.UserFindByEmail)
 	return r

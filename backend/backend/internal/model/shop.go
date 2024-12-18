@@ -1,11 +1,18 @@
 package model
 
-type Shop struct {
-	ShopID          int       `json:"id" gorm:"primary_key"`
-	ShopName        string    `json:"name" gorm:"unique,not null"`
-	ShopDescription string    `json:"shop_description"`
-	OwnerID         int       `json:"ownerID"`
-	Products        []Product `json:"products" gorm:"foreignKey:ShopID"`
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
-	Owner *User `json:"owner" gorm:"foreignKey:OwnerID"`
+type Shop struct {
+	ShopID      int             `gorm:"primarykey"`
+	Name        string          `json:"name" valid:"required" gorm:"unique;type:varchar(255)"`
+	Description string          `json:"description" valid:"required" gorm:"type:varchar(1000)"`
+	Email       string          `json:"email" valid:"required;email" gorm:"type:varchar(256);unique;not null"`
+	OwnerID     int             `json:"owner_id"`
+	Products    []*Product      `gorm:"foreignkey:ShopID" json:"products"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
+	DeletedAt   *gorm.DeletedAt `gorm:"index"`
 }
