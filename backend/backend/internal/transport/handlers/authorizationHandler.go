@@ -8,45 +8,53 @@ import (
 )
 
 type AuthService interface {
-	SignUP(username, email, password, phone string) error
+	SignUP(user *model.User) error
 	SignIN(email, password string) (string, error)
-	FindByUsername(username string) (*model.User, error)
 	FindByEmail(email string) (*model.User, error)
 }
 
-type Validator interface {
-	ValidateStruct(interface{}) error
+type AuthHandler struct {
+	service   AuthService
+	validator Validator
 }
 
-func (h *Handler) SignUP(w http.ResponseWriter, r *http.Request) {
+func NewAuthHandler(service AuthService, validator Validator) *AuthHandler {
+	return &AuthHandler{
+		service:   service,
+		validator: validator,
+	}
+}
+
+func (h *AuthHandler) SignUP(w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "incorrect data format", http.StatusBadRequest)
 		return
 	}
 
-	err := h.Validator.ValidateStruct(&user)
+	err := h.validator.ValidateStruct(&user)
 	if err != nil {
 		log.Error().Err(err).Msg("Validation failed")
 		http.Error(w, "incorrect data for registration", http.StatusBadRequest)
 		return
 	}
 
-	err = h.AuthService.SignUP(user.Username, user.Email, user.Password, user.Phone)
+	err = h.service.SignUP(&user)
 	if err != nil {
+		log.Error().Err(err).Msg("Error to signUP user")
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(map[string]string{
-		"-": "User successfully registered"})
+		"message": "User successfully registered"})
 	if err != nil {
 		http.Error(w, "could not encode response", http.StatusInternalServerError)
 	}
 }
 
-func (h *Handler) SignIN(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) SignIN(w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		log.Error().Err(err).Msg("Decoder in authHandler")
@@ -54,7 +62,7 @@ func (h *Handler) SignIN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.AuthService.SignIN(user.Email, user.Password)
+	token, err := h.service.SignIN(user.Email, user.Password)
 	if err != nil {
 		log.Error().Err(err).Msg("SignIN in authHandler")
 		http.Error(w, "incorrect data format", http.StatusBadRequest)

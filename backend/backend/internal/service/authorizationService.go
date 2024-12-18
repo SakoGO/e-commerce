@@ -13,70 +13,44 @@ import (
 )
 
 type AuthRepository interface {
-	SignUP(user *model.User) error
-	SignIN(user *model.User) error
-	FindByUsername(username string) (*model.User, error)
+	Create(user *model.User) error
 	FindByEmail(email string) (*model.User, error)
-	FindByPhone(phone string) (*model.User, error)
-}
-
-type AuthWalletRepository interface {
-	CreateWallet(wallet *model.Wallet) error
-	FindByUserID(userID int) (*model.Wallet, error)
 }
 
 type AuthService struct {
 	aRepo AuthRepository
-	wRepo AuthWalletRepository
 }
 
-func NewAuthService(aRepo AuthRepository, wRepo WalletRepository) *AuthService {
-	return &AuthService{aRepo: aRepo, wRepo: wRepo}
-}
-
-func (s *AuthService) FindByUsername(username string) (*model.User, error) {
-	return s.aRepo.FindByUsername(username)
+func NewAuthService(aRepo AuthRepository) *AuthService {
+	return &AuthService{
+		aRepo: aRepo,
+	}
 }
 
 func (s *AuthService) FindByEmail(email string) (*model.User, error) {
 	return s.aRepo.FindByEmail(email)
 }
 
-func (s *AuthService) FindByPhone(phone string) (*model.User, error) {
-	return s.aRepo.FindByPhone(phone)
+func (s *AuthService) GetAll(db *gorm.DB) (*model.User, error) {
+	var users *model.User
+	err := db.Model(&model.User{}).Preload("Wallet").Find(&users).Error
+	return users, err
 }
 
-func (s *AuthService) SignUP(username, email, password, phone string) error {
-
-	existingUser, err := s.aRepo.FindByUsername(username)
-	if err == nil && existingUser != nil {
-		return fmt.Errorf("username %s is already taken", username)
-	}
-
-	existingEmail, err := s.aRepo.FindByEmail(email)
-	if err == nil && existingEmail != nil {
-		return fmt.Errorf("email %s is already taken", email)
-	}
-
-	existingPhone, err := s.aRepo.FindByPhone(phone)
-	if err == nil && existingPhone != nil {
-		return fmt.Errorf("phone %s is already taken", phone)
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func (s *AuthService) SignUP(user *model.User) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to hash password")
 	}
 
-	user := &model.User{
-		Username: username,
-		Email:    email,
-		Password: string(hashedPassword),
-		Phone:    phone,
+	user.Password = string(hashedPassword)
+	user.Wallet = &model.Wallet{}
+
+	if err := s.aRepo.Create(user); err != nil {
+		log.Error().Err(err).Msg("Failed to signUP")
+		return fmt.Errorf("failed to sign up: %v", err)
 	}
-	if err := s.aRepo.SignUP(user); err != nil {
-		return fmt.Errorf("failed to sign up")
-	}
+
 	return nil
 }
 

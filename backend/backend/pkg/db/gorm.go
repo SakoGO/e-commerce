@@ -26,6 +26,5 @@ func NewGormDB(cfg *config.Config) (*gorm.DB, error) {
 	if err != nil {
 		log.Fatalf("Connect database failed: %v", err)
 	}
-
 	return db, nil
 }
